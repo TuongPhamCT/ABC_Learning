@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "231575163845",
+    "project_id": "abc-learning-1abb6",
+    "storage_bucket": "abc-learning-1abb6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:231575163845:android:82cdb1a86e772be52071ac",
+        "android_client_info": {
+          "package_name": "com.example.abc_learning_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "231575163845-tk7fe9evacutj1j2vd4tf8t8qa9cd5nq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6-XEEf6MWxvfhWtI6DVVFhsSceDnDtjw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "231575163845-tk7fe9evacutj1j2vd4tf8t8qa9cd5nq.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
