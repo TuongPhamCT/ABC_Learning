@@ -65,10 +65,25 @@ class TextStyles {
     fontFamily: AppFonts.lexend,
     letterSpacing: -1,
   );
+
+  //No Internet Page
+  static const TextStyle noInternetTitle = TextStyle(
+    fontSize: 22,
+    color: Color(0xff212121),
+    fontWeight: FontWeight.bold,
+    fontFamily: AppFonts.poppins,
+  );
+  static const TextStyle noInternetDes = TextStyle(
+    fontSize: 13,
+    color: Colors.black,
+    fontWeight: FontWeight.w300,
+    fontFamily: AppFonts.lexend,
+  );
 }
 
 class AppFonts {
   static const String lexend = 'Lexend';
   static const String monter = 'Montserrat';
   static const String inter = 'Inter';
+  static const String poppins = 'Poppins';
 }

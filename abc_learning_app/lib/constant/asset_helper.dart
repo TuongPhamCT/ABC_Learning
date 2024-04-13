@@ -14,4 +14,7 @@ class AssetHelper {
 
   //register page
   static const String illustraionRegis = imgAssets + 'iluRegis.png';
+
+  //No internet page
+  static const String noInternet = imgAssets + 'noInternet.png';
 }
