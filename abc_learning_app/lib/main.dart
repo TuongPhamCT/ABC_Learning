@@ -1,6 +1,7 @@
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/helper/local_storage_helper.dart';
 import 'package:abc_learning_app/page/splash_page.dart';
+import 'package:abc_learning_app/page/starter_page.dart';
 import 'package:abc_learning_app/route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -64,7 +65,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return SplashPage();
+    return _showSplash ? SplashPage() : StarterPage();
     // : StreamBuilder<User?>(
     //     stream: FirebaseAuth.instance.authStateChanges(),
     //     builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
