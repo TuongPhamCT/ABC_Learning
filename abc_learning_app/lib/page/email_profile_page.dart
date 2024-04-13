@@ -1,20 +1,19 @@
 import 'package:abc_learning_app/component/input_frame.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
-import 'package:abc_learning_app/page/email_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
-class NameProfilePage extends StatefulWidget {
-  const NameProfilePage({super.key});
-  static const String routeName = 'name_profile_page';
+class EmailProfile extends StatefulWidget {
+  const EmailProfile({super.key});
+  static const String routeName = 'email_profile_page';
 
   @override
-  State<NameProfilePage> createState() => _NameProfilePageState();
+  State<EmailProfile> createState() => _EmailProfileState();
 }
 
-class _NameProfilePageState extends State<NameProfilePage> {
+class _EmailProfileState extends State<EmailProfile> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -56,19 +55,17 @@ class _NameProfilePageState extends State<NameProfilePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'What is your name?',
+                      'What is your email, Anna?',
                       style: TextStyles.profileTitle,
                     ),
                     const Gap(36),
                     InputFrame(
-                      hintText: 'Your Name',
+                      hintText: 'Your Email',
                       textAlign: TextAlign.center,
                     ),
                     const Gap(36),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(EmailProfile.routeName);
-                      },
+                      onPressed: () {},
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                             EdgeInsets.all(8)),
