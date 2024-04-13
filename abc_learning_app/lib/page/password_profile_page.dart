@@ -1,20 +1,19 @@
 import 'package:abc_learning_app/component/input_frame.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
-import 'package:abc_learning_app/page/password_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
-class EmailProfile extends StatefulWidget {
-  const EmailProfile({super.key});
-  static const String routeName = 'email_profile_page';
+class PasswordProfile extends StatefulWidget {
+  const PasswordProfile({super.key});
+  static const String routeName = 'password_profile_page';
 
   @override
-  State<EmailProfile> createState() => _EmailProfileState();
+  State<PasswordProfile> createState() => _PasswordProfileState();
 }
 
-class _EmailProfileState extends State<EmailProfile> {
+class _PasswordProfileState extends State<PasswordProfile> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -56,19 +55,21 @@ class _EmailProfileState extends State<EmailProfile> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'What is your email, Anna?',
+                      'Set Up Your Password',
                       style: TextStyles.profileTitle,
                     ),
                     const Gap(36),
                     InputFrame(
-                      hintText: 'Your Email',
+                      hintText: 'Your Password',
                       textAlign: TextAlign.center,
+                      isPassword: true,
+                      obscureCharacter: 'X',
                     ),
                     const Gap(36),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context)
-                            .pushNamed(PasswordProfile.routeName);
+                        // Navigator.of(context)
+                        //     .pushNamed(PasswordProfile.routeName);
                       },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
@@ -86,7 +87,7 @@ class _EmailProfileState extends State<EmailProfile> {
                           ),
                         ),
                       ),
-                      child: Text('Next', style: TextStyles.loginButtonText),
+                      child: Text('Start', style: TextStyles.loginButtonText),
                     ),
                   ],
                 ),
