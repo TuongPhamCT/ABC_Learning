@@ -4,4 +4,7 @@ class AssetHelper {
 
   //Assets in images
   static const String imgAssets = 'assets/images/';
+
+  //Splash
+  static const String logo = imgAssets + 'logo.jpeg';
 }
