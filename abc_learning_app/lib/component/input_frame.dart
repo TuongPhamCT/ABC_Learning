@@ -8,6 +8,7 @@ class InputFrame extends StatefulWidget {
   final TextAlign? textAlign;
   final TextEditingController? controller;
   final TextInputType? keyboardType;
+  final String? obscureCharacter;
   const InputFrame({
     super.key,
     this.hintText,
@@ -15,6 +16,7 @@ class InputFrame extends StatefulWidget {
     this.controller,
     this.textAlign,
     this.keyboardType,
+    this.obscureCharacter,
   });
 
   @override
@@ -33,6 +35,7 @@ class _InputFrameState extends State<InputFrame> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      obscuringCharacter: widget.obscureCharacter ?? '•',
       keyboardType: widget.keyboardType,
       textAlign: widget.textAlign ?? TextAlign.start,
       onTapOutside: (event) {
