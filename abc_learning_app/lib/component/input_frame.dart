@@ -5,9 +5,17 @@ import 'package:flutter/material.dart';
 class InputFrame extends StatefulWidget {
   final String? hintText;
   final bool? isPassword;
+  final TextAlign? textAlign;
   final TextEditingController? controller;
-  const InputFrame(
-      {super.key, this.hintText, this.isPassword = false, this.controller});
+  final TextInputType? keyboardType;
+  const InputFrame({
+    super.key,
+    this.hintText,
+    this.isPassword = false,
+    this.controller,
+    this.textAlign,
+    this.keyboardType,
+  });
 
   @override
   State<InputFrame> createState() => _InputFrameState();
@@ -25,6 +33,8 @@ class _InputFrameState extends State<InputFrame> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      keyboardType: widget.keyboardType,
+      textAlign: widget.textAlign ?? TextAlign.start,
       onTapOutside: (event) {
         FocusScope.of(context).unfocus();
       },

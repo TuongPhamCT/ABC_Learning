@@ -8,4 +8,7 @@ class ColorPalette {
   static const Color loginbutton = Color(0xff0693F1);
   static const Color googleDialog = Color(0xffFAFAFA);
   static const Color emailgg = Color(0xff3C3C43);
+
+  //Profile - property Page
+  static const Color profileTitle = Color(0xff273958);
 }

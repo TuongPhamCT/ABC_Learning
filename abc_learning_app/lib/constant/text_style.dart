@@ -41,6 +41,7 @@ class TextStyles {
     color: Colors.white,
     fontWeight: FontWeight.normal,
     fontFamily: AppFonts.lexend,
+    letterSpacing: -0.7,
   );
   static const TextStyle MediumTextRegular = TextStyle(
     fontSize: 14,
@@ -54,6 +55,15 @@ class TextStyles {
     fontWeight: FontWeight.normal,
     letterSpacing: -0.24,
     fontFamily: AppFonts.lexend,
+  );
+
+  //Profile - property Page
+  static const TextStyle profileTitle = TextStyle(
+    fontSize: 22,
+    color: ColorPalette.profileTitle,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppFonts.lexend,
+    letterSpacing: -1,
   );
 }
 
