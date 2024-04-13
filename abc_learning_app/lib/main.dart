@@ -1,3 +1,4 @@
+import 'package:abc_learning_app/component/d%C3%AApndency_injection.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/helper/local_storage_helper.dart';
 import 'package:abc_learning_app/page/splash_page.dart';
@@ -5,15 +6,15 @@ import 'package:abc_learning_app/page/starter_page.dart';
 import 'package:abc_learning_app/route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';
 
 Future main() async {
 //   await Hive.initFlutter();
 //   await LocalStorageHelper.initLocalStorageHelper();
 //   WidgetsFlutterBinding.ensureInitialized();
-  runApp(
-    const MyApp(),
-  );
+  runApp(const MyApp());
+  DependencyInjection.init();
 }
 
 class MyApp extends StatefulWidget {
@@ -31,7 +32,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'ABC Learning',
       theme: ThemeData(
         primaryColor: ColorPalette.primaryColor,
