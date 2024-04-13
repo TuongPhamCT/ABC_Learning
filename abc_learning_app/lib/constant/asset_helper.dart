@@ -7,4 +7,8 @@ class AssetHelper {
 
   //Splash
   static const String logo = imgAssets + 'logo.jpeg';
+
+  //login page
+  static const String googleLogo = imgAssets + 'logoGoogle.png';
+  static const String ggAvatar = imgAssets + 'ggAvt.png';
 }
