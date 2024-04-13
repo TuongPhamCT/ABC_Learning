@@ -1,15 +1,15 @@
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/helper/local_storage_helper.dart';
-import 'package:abc_learning_app/page/spash_page.dart';
+import 'package:abc_learning_app/page/splash_page.dart';
 import 'package:abc_learning_app/route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/adapters.dart';
 
 Future main() async {
-  await Hive.initFlutter();
-  await LocalStorageHelper.initLocalStorageHelper();
-  WidgetsFlutterBinding.ensureInitialized();
+//   await Hive.initFlutter();
+//   await LocalStorageHelper.initLocalStorageHelper();
+//   WidgetsFlutterBinding.ensureInitialized();
   runApp(
     const MyApp(),
   );
@@ -23,9 +23,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  var auth = FirebaseAuth.instance;
-  bool isLogin = false;
-
   @override
   void initState() {
     super.initState();
@@ -34,10 +31,10 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Paradise',
+      title: 'ABC Learning',
       theme: ThemeData(
         primaryColor: ColorPalette.primaryColor,
-        scaffoldBackgroundColor: ColorPalette.backgroundColor,
+        scaffoldBackgroundColor: Colors.white,
       ),
       home: AuthenticationWrapper(),
       routes: routes,
