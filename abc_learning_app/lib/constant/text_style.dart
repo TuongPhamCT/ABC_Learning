@@ -48,6 +48,13 @@ class TextStyles {
     fontWeight: FontWeight.normal,
     fontFamily: AppFonts.lexend,
   );
+  static const TextStyle Typrography = TextStyle(
+    fontSize: 32,
+    color: Color(0xff273958),
+    fontWeight: FontWeight.normal,
+    letterSpacing: -0.24,
+    fontFamily: AppFonts.lexend,
+  );
 }
 
 class AppFonts {

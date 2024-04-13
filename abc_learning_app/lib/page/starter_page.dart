@@ -1,6 +1,7 @@
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/page/login_page.dart';
+import 'package:abc_learning_app/page/register_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -119,7 +120,10 @@ class _StarterPageState extends State<StarterPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         ElevatedButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pushNamed(RegisterPage.routeName);
+                          },
                           style: ButtonStyle(
                             padding:
                                 MaterialStateProperty.all<EdgeInsetsGeometry>(
