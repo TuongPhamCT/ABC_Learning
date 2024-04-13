@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 
 class NameProfilePage extends StatefulWidget {
   const NameProfilePage({super.key});
+  static const String routeName = 'name_profile_page';
 
   @override
   State<NameProfilePage> createState() => _NameProfilePageState();
@@ -54,14 +55,13 @@ class _NameProfilePageState extends State<NameProfilePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'How old are you?',
+                      'What is your name?',
                       style: TextStyles.profileTitle,
                     ),
                     const Gap(36),
                     InputFrame(
-                      hintText: 'Your Age',
+                      hintText: 'Your Name',
                       textAlign: TextAlign.center,
-                      keyboardType: TextInputType.number,
                     ),
                     const Gap(36),
                     ElevatedButton(
