@@ -1,4 +1,4 @@
-import 'package:abc_learning_app/component/d%C3%AApndency_injection.dart';
+import 'package:abc_learning_app/component/dependency_injection.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/helper/local_storage_helper.dart';
 import 'package:abc_learning_app/page/splash_page.dart';

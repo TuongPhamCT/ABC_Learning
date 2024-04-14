@@ -29,12 +29,11 @@ class _LoginPageState extends State<LoginPage> {
               alignment: Alignment.center,
               child: Image.asset(
                 AssetHelper.logo,
-                width: 300,
-                height: 350,
+                width: 310,
               ),
             ),
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.only(left: 16, right: 16, bottom: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
