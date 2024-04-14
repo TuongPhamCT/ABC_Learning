@@ -1,6 +1,9 @@
+import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:gap/gap.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 
 class SplashPage extends StatefulWidget {
@@ -14,24 +17,14 @@ class SplashPage extends StatefulWidget {
 class _SplashPageState extends State<SplashPage> {
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
       body: Container(
+        height: size.height,
+        width: size.width,
         alignment: Alignment.center,
         color: ColorPalette.primaryColor,
-        child: GradientText(
-          'ABC\nLearning',
-          textAlign: TextAlign.center,
-          colors: [
-            Colors.white,
-            Colors.amber,
-            Colors.grey,
-          ],
-          style: TextStyle(
-            fontSize: 65,
-            fontFamily: AppFonts.lexend,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        child: Image.asset(AssetHelper.logo),
       ),
     );
   }

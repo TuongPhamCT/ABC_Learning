@@ -38,8 +38,6 @@ class _StarterPageState extends State<StarterPage> {
                 alignment: Alignment.center,
                 child: Image.asset(
                   AssetHelper.logo,
-                  width: size.width * 0.75,
-                  height: size.width * 0.75,
                 ),
               ),
             ),
