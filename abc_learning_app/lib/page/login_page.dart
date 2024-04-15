@@ -100,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                   InputFrame(
                     hintText: 'Password',
                     isPassword: true,
-                    controller: _emailController,
+                    controller: _passwordController,
                   ),
                   const Gap(17),
                   Container(
@@ -129,7 +129,8 @@ class _LoginPageState extends State<LoginPage> {
                               .message); // Consider using a more user-friendly error handling
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Email hoặc mật khẩu không đúng, xin vui lòng nhập lại!'),
+                              content: Text(
+                                  'Email hoặc mật khẩu không đúng, xin vui lòng nhập lại!'),
                             ),
                           );
                         }

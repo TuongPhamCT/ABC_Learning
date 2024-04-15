@@ -92,6 +92,10 @@ class _PasswordProfileState extends State<PasswordProfile> {
                               .set({
                             'age': widget.age,
                             'email': widget.email,
+                            'avatar': "",
+                            'phoneNumber': "",
+                            "address": "",
+                            "gender": ""
                           });
 
                           // Navigate to home screen or next step
