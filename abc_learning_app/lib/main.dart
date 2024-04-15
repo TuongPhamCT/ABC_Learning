@@ -1,20 +1,22 @@
 import 'package:abc_learning_app/component/dependency_injection.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
+import 'package:abc_learning_app/firebase_options.dart';
 import 'package:abc_learning_app/helper/local_storage_helper.dart';
 import 'package:abc_learning_app/page/splash_page.dart';
 import 'package:abc_learning_app/page/starter_page.dart';
 import 'package:abc_learning_app/route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive_flutter/adapters.dart';
 
-Future main() async {
-//   await Hive.initFlutter();
-//   await LocalStorageHelper.initLocalStorageHelper();
-//   WidgetsFlutterBinding.ensureInitialized();
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
-  DependencyInjection.init();
 }
 
 class MyApp extends StatefulWidget {
