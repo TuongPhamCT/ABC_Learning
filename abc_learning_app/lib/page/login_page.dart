@@ -116,7 +116,11 @@ class _LoginPageState extends State<LoginPage> {
                             email: email,
                             password: password,
                           );
-                          // Handle navigation after successful login
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Đăng ký thành công!'),
+                            ),
+                          );
                           Navigator.of(context)
                               .pushReplacementNamed(NoInteretPage.routeName);
                         } on FirebaseAuthException catch (e) {
