@@ -4,9 +4,11 @@ import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/page/register_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
+import 'package:abc_learning_app/page/no_network_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -17,6 +19,52 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Assuming using Firebase Authentication
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text,
+        password: _passwordController.text,
+      );
+
+      // Navigate to home screen or another relevant screen on successful login
+      Navigator.of(context).pushReplacementNamed('/home');
+    } on FirebaseAuthException catch (e) {
+      // Handle errors, perhaps show an AlertDialog with the error message
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text('Login Failed'),
+          content: Text(e.message ?? 'Unknown Error'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () => Navigator.of(ctx).pop(),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -42,9 +90,7 @@ class _LoginPageState extends State<LoginPage> {
                     style: TextStyles.loginTitle,
                   ),
                   const Gap(8),
-                  InputFrame(
-                    hintText: 'Email',
-                  ),
+                  InputFrame(hintText: 'Email', controller: _emailController),
                   const Gap(8),
                   Text(
                     'Input Your Password',
@@ -54,12 +100,40 @@ class _LoginPageState extends State<LoginPage> {
                   InputFrame(
                     hintText: 'Password',
                     isPassword: true,
+                    controller: _emailController,
                   ),
                   const Gap(17),
                   Container(
                     alignment: Alignment.center,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () async {
+                        var email = _emailController.text;
+                        var password = _passwordController.text;
+                        try {
+                          UserCredential userCredential = await FirebaseAuth
+                              .instance
+                              .signInWithEmailAndPassword(
+                            email: email,
+                            password: password,
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Đăng nhập thành công!'),
+                            ),
+                          );
+                          Navigator.of(context)
+                              .pushReplacementNamed(NoInteretPage.routeName);
+                        } on FirebaseAuthException catch (e) {
+                          // Handle errors
+                          print(e
+                              .message); // Consider using a more user-friendly error handling
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Email hoặc mật khẩu không đúng, xin vui lòng nhập lại!'),
+                            ),
+                          );
+                        }
+                      },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                             EdgeInsets.all(8)),

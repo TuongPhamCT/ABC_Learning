@@ -1,12 +1,19 @@
 import 'package:abc_learning_app/component/input_frame.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/no_network_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
 class PasswordProfile extends StatefulWidget {
-  const PasswordProfile({super.key});
+  final String age;
+  final String email;
+  const PasswordProfile({Key? key, required this.age, required this.email})
+      : super(key: key);
+
   static const String routeName = 'password_profile_page';
 
   @override
@@ -14,6 +21,7 @@ class PasswordProfile extends StatefulWidget {
 }
 
 class _PasswordProfileState extends State<PasswordProfile> {
+  final TextEditingController _passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -64,12 +72,44 @@ class _PasswordProfileState extends State<PasswordProfile> {
                       textAlign: TextAlign.center,
                       isPassword: true,
                       obscureCharacter: 'X',
+                      controller: _passwordController,
                     ),
                     const Gap(36),
                     ElevatedButton(
-                      onPressed: () {
-                        // Navigator.of(context)
-                        //     .pushNamed(PasswordProfile.routeName);
+                      onPressed: () async {
+                        try {
+                          UserCredential userCredential = await FirebaseAuth
+                              .instance
+                              .createUserWithEmailAndPassword(
+                            email: widget.email,
+                            password: _passwordController.text,
+                          );
+
+                          // Save additional user information to Firestore
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(userCredential.user!.uid)
+                              .set({
+                            'age': widget.age,
+                            'email': widget.email,
+                          });
+
+                          // Navigate to home screen or next step
+                          // For example, you can navigate to a home screen here
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => NoInteretPage()));
+                        } catch (e) {
+                          print('Error: $e');
+                          // Handle error, for example, display a snackbar
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Đăng ký không thành công. Vui lòng thử lại sau.'),
+                            ),
+                          );
+                        }
                       },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
