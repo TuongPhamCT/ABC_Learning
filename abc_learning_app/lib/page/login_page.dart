@@ -118,7 +118,7 @@ class _LoginPageState extends State<LoginPage> {
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Đăng ký thành công!'),
+                              content: Text('Đăng nhập thành công!'),
                             ),
                           );
                           Navigator.of(context)
@@ -127,6 +127,11 @@ class _LoginPageState extends State<LoginPage> {
                           // Handle errors
                           print(e
                               .message); // Consider using a more user-friendly error handling
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Email hoặc mật khẩu không đúng, xin vui lòng nhập lại!'),
+                            ),
+                          );
                         }
                       },
                       style: ButtonStyle(

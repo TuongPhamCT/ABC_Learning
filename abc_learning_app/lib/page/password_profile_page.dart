@@ -105,7 +105,8 @@ class _PasswordProfileState extends State<PasswordProfile> {
                           // Handle error, for example, display a snackbar
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Error: $e'),
+                              content: Text(
+                                  'Đăng ký không thành công. Vui lòng thử lại sau.'),
                             ),
                           );
                         }
