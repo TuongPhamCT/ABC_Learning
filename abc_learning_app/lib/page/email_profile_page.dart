@@ -7,7 +7,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
 class EmailProfile extends StatefulWidget {
-  const EmailProfile({super.key});
+  final String age;
+
+  const EmailProfile({Key? key, required this.age}) : super(key: key);
   static const String routeName = 'email_profile_page';
 
   @override
@@ -15,6 +17,7 @@ class EmailProfile extends StatefulWidget {
 }
 
 class _EmailProfileState extends State<EmailProfile> {
+  final TextEditingController _emailController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -63,12 +66,20 @@ class _EmailProfileState extends State<EmailProfile> {
                     InputFrame(
                       hintText: 'Your Email',
                       textAlign: TextAlign.center,
+                      controller: _emailController,
                     ),
                     const Gap(36),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context)
-                            .pushNamed(PasswordProfile.routeName);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => PasswordProfile(
+                              age: widget.age,
+                              email: _emailController.text,
+                            ),
+                          ),
+                        );
                       },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
