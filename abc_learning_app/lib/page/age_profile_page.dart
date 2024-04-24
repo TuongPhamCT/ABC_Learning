@@ -2,6 +2,7 @@ import 'package:abc_learning_app/component/input_frame.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/page/email_profile_page.dart';
+import 'package:abc_learning_app/page/name_profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
@@ -73,8 +74,7 @@ class _AgeProfileState extends State<AgeProfile> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                EmailProfile(age: _ageController.text),
+                            builder: (context) => NameProfilePage(),
                           ),
                         );
                       },

@@ -5,8 +5,10 @@ import 'package:abc_learning_app/page/no_network_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
+import 'package:pin_code_fields/pin_code_fields.dart';
 
 class PasswordProfile extends StatefulWidget {
   final String age;
@@ -22,6 +24,59 @@ class PasswordProfile extends StatefulWidget {
 
 class _PasswordProfileState extends State<PasswordProfile> {
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmationCodeController =
+      TextEditingController();
+
+  void _showConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          surfaceTintColor: Colors.transparent,
+          content: Container(
+            height: 190,
+            child: Column(
+              children: [
+                const Text('Verification Code', style: TextStyles.verifyCode),
+                const Gap(30),
+                const Text(
+                  'A verification code was send to your email\nEnter code:',
+                  style: TextStyles.verifyDes,
+                  textAlign: TextAlign.center,
+                ),
+                const Gap(30),
+                PinCodeTextField(
+                  appContext: context,
+                  length: 6,
+                  pinTheme: PinTheme(
+                    shape: PinCodeFieldShape.box,
+                    borderRadius: BorderRadius.circular(10),
+                    fieldHeight: 40,
+                    fieldWidth: 40,
+                    activeColor: ColorPalette.primaryColor,
+                    activeFillColor: ColorPalette.primaryColor,
+                    selectedColor: ColorPalette.primaryColor,
+                    selectedFillColor: ColorPalette.primaryColor,
+                    inactiveColor: ColorPalette.primaryColor.withOpacity(0.44),
+                    inactiveFillColor:
+                        ColorPalette.primaryColor.withOpacity(0.44),
+                  ),
+                  cursorColor: Colors.black,
+                  animationDuration: const Duration(milliseconds: 300),
+                  textStyle: const TextStyle(fontSize: 20, height: 1.6),
+                  backgroundColor: Colors.transparent,
+                  enableActiveFill: true,
+                  keyboardType: TextInputType.number,
+                  onCompleted: (value) {},
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -74,46 +129,55 @@ class _PasswordProfileState extends State<PasswordProfile> {
                       obscureCharacter: 'X',
                       controller: _passwordController,
                     ),
+                    const Gap(20),
+                    InputFrame(
+                      hintText: 'Confirm Your Password',
+                      textAlign: TextAlign.center,
+                      isPassword: true,
+                      obscureCharacter: 'X',
+                      controller: _passwordController,
+                    ),
                     const Gap(36),
                     ElevatedButton(
-                      onPressed: () async {
-                        try {
-                          UserCredential userCredential = await FirebaseAuth
-                              .instance
-                              .createUserWithEmailAndPassword(
-                            email: widget.email,
-                            password: _passwordController.text,
-                          );
+                      onPressed: () {
+                        _showConfirmationDialog(context);
+                        // try {
+                        //   UserCredential userCredential = await FirebaseAuth
+                        //       .instance
+                        //       .createUserWithEmailAndPassword(
+                        //     email: widget.email,
+                        //     password: _passwordController.text,
+                        //   );
 
-                          // Save additional user information to Firestore
-                          await FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(userCredential.user!.uid)
-                              .set({
-                            'age': widget.age,
-                            'email': widget.email,
-                            'avatar': "",
-                            'phoneNumber': "",
-                            "address": "",
-                            "gender": ""
-                          });
+                        //   // Save additional user information to Firestore
+                        //   await FirebaseFirestore.instance
+                        //       .collection('users')
+                        //       .doc(userCredential.user!.uid)
+                        //       .set({
+                        //     'age': widget.age,
+                        //     'email': widget.email,
+                        //     'avatar': "",
+                        //     'phoneNumber': "",
+                        //     "address": "",
+                        //     "gender": ""
+                        //   });
 
-                          // Navigate to home screen or next step
-                          // For example, you can navigate to a home screen here
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => NoInteretPage()));
-                        } catch (e) {
-                          print('Error: $e');
-                          // Handle error, for example, display a snackbar
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                  'Đăng ký không thành công. Vui lòng thử lại sau.'),
-                            ),
-                          );
-                        }
+                        //   // Navigate to home screen or next step
+                        //   // For example, you can navigate to a home screen here
+                        //   Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(
+                        //           builder: (context) => NoInteretPage()));
+                        // } catch (e) {
+                        //   print('Error: $e');
+                        //   // Handle error, for example, display a snackbar
+                        //   ScaffoldMessenger.of(context).showSnackBar(
+                        //     SnackBar(
+                        //       content: Text(
+                        //           'Đăng ký không thành công. Vui lòng thử lại sau.'),
+                        //     ),
+                        //   );
+                        // }
                       },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(

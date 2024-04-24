@@ -59,7 +59,7 @@ class _EmailProfileState extends State<EmailProfile> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'What is your email, Anna?',
+                      'What is your email?',
                       style: TextStyles.profileTitle,
                     ),
                     const Gap(36),
