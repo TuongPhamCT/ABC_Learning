@@ -3,6 +3,7 @@ import 'package:abc_learning_app/component/input_frame.dart';
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/forgot_password_page.dart';
 import 'package:abc_learning_app/page/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -183,7 +184,23 @@ class _LoginPageState extends State<LoginPage> {
                       ],
                     ),
                   ),
-                  Gap(45),
+                  const Gap(45),
+                  Container(
+                    alignment: Alignment.center,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.of(context)
+                            .pushNamed(ForgotPasswordPage.routeName);
+                      },
+                      child: Text(
+                        'Forget your Password?',
+                        style: TextStyles.MediumTextRegular.copyWith(
+                          color: ColorPalette.primaryColor,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Gap(10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

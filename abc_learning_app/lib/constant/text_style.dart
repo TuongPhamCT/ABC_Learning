@@ -79,6 +79,20 @@ class TextStyles {
     fontWeight: FontWeight.w300,
     fontFamily: AppFonts.lexend,
   );
+  static const TextStyle verifyCode = TextStyle(
+    fontSize: 20,
+    color: Colors.black,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppFonts.poppins,
+    letterSpacing: -0.24,
+  );
+  static const TextStyle verifyDes = TextStyle(
+    fontSize: 13,
+    color: Colors.black,
+    fontWeight: FontWeight.w300,
+    fontFamily: AppFonts.poppins,
+    letterSpacing: -0.24,
+  );
 }
 
 class AppFonts {

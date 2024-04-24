@@ -44,8 +44,11 @@ dependencies:
   connectivity_plus: ^2.3.0
   provider: ^6.1.2
   get: ^4.6.6
-  firebase_messaging: ^14.8.1
   cloud_firestore: ^4.16.1
+  firebase_core: ^2.29.0
+  firebase_messaging: ^14.8.1
+  pin_code_fields: ^8.0.1
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
