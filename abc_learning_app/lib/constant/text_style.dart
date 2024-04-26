@@ -93,6 +93,27 @@ class TextStyles {
     fontFamily: AppFonts.poppins,
     letterSpacing: -0.24,
   );
+
+  //home page
+  static const TextStyle titleComponent = TextStyle(
+    fontSize: 20,
+    color: ColorPalette.titleComponent,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.lexend,
+  );
+  static const TextStyle progress = TextStyle(
+    fontSize: 10,
+    color: Colors.black,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.poppins,
+    letterSpacing: -0.24,
+  );
+  static const TextStyle bottomBar = TextStyle(
+    fontSize: 12,
+    color: Colors.black,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.inter,
+  );
 }
 
 class AppFonts {
