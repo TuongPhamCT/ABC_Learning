@@ -1,6 +1,7 @@
 import 'package:abc_learning_app/page/age_profile_page.dart';
 import 'package:abc_learning_app/page/email_profile_page.dart';
 import 'package:abc_learning_app/page/forgot_password_page.dart';
+import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/login_page.dart';
 import 'package:abc_learning_app/page/name_profile_page.dart';
 import 'package:abc_learning_app/page/no_network_page.dart';
@@ -26,4 +27,5 @@ final Map<String, WidgetBuilder> routes = {
       ),
   NoInteretPage.routeName: (context) => NoInteretPage(),
   ForgotPasswordPage.routeName: (context) => ForgotPasswordPage(),
+  HomePage.routeName: (context) => HomePage(),
 };

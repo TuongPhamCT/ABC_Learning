@@ -1,6 +1,7 @@
 import 'package:abc_learning_app/component/input_frame.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/no_network_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -140,7 +141,8 @@ class _PasswordProfileState extends State<PasswordProfile> {
                     const Gap(36),
                     ElevatedButton(
                       onPressed: () {
-                        _showConfirmationDialog(context);
+                        Navigator.of(context).pushNamed(HomePage.routeName);
+                        //_showConfirmationDialog(context); //Hien thi dialog xac nhan OTP
                         // try {
                         //   UserCredential userCredential = await FirebaseAuth
                         //       .instance
