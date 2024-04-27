@@ -25,4 +25,8 @@ class ColorPalette {
   static const Color itemBackgroundTwo = Color(0xffF1C40F);
   static const Color itemBackgroundThree = Color(0xff16A085);
   static const Color itemBackgroundFour = Color(0xff2980B9);
+
+  //Listening Main Page
+  static const Color titlePage = Color(0xff43463F);
+  static const Color itemBorder = Color(0xffDADADA);
 }
