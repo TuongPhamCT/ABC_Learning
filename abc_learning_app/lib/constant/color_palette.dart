@@ -17,4 +17,8 @@ class ColorPalette {
   static const Color titleComponent = Color(0xff3C3A36);
   static const Color progressbarbackground = Color(0xffFFF5EE);
   static const Color progressbarValue = Color(0xff2FDB81);
+
+  //Achievement Page
+  static const Color pageTitle = Color(0xff111111);
+  static const Color achievementBorder = Color(0xffD4D1D1);
 }
