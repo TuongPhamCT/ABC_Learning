@@ -21,4 +21,8 @@ class ColorPalette {
   //Achievement Page
   static const Color pageTitle = Color(0xff111111);
   static const Color achievementBorder = Color(0xffD4D1D1);
+  static const Color itemBackgroundOne = Color(0xff9BD2FC);
+  static const Color itemBackgroundTwo = Color(0xffF1C40F);
+  static const Color itemBackgroundThree = Color(0xff16A085);
+  static const Color itemBackgroundFour = Color(0xff2980B9);
 }
