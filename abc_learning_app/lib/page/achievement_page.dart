@@ -4,9 +4,11 @@ import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/page/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
 
 class AchievementPage extends StatefulWidget {
   const AchievementPage({super.key});
@@ -19,6 +21,13 @@ class AchievementPage extends StatefulWidget {
 class _AchievementPageState extends State<AchievementPage> {
   int _selectedIndex = 1;
   double rating = 3;
+  List<Color> colors = [
+    ColorPalette.itemBackgroundOne,
+    ColorPalette.itemBackgroundTwo,
+    ColorPalette.itemBackgroundThree,
+    ColorPalette.itemBackgroundFour,
+  ];
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -119,72 +128,14 @@ class _AchievementPageState extends State<AchievementPage> {
               ),
             ),
             Gap(20),
-            Container(
-              decoration: BoxDecoration(
-                color: ColorPalette.primaryColor.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(5),
-              ),
-              padding: EdgeInsets.all(15),
-              child: Row(
-                children: [
-                  Image.asset(
-                    AssetHelper.trophyAchievement,
-                    width: 72,
-                  ),
-                  Gap(10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: size.width * 0.62,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Studious',
-                              style: TextStyles.heading.copyWith(
-                                color: Colors.white,
-                              ),
-                            ),
-                            RatingBar.builder(
-                              ignoreGestures: true,
-                              itemSize: 24,
-                              initialRating: rating,
-                              minRating: 1,
-                              direction: Axis.horizontal,
-                              allowHalfRating: true,
-                              unratedColor: Colors.white,
-                              itemCount: 5,
-                              itemPadding:
-                                  EdgeInsets.symmetric(horizontal: 1.0),
-                              itemBuilder: (context, index) {
-                                if (index < rating) {
-                                  return const Icon(
-                                    Icons.star,
-                                    color: Colors.orange,
-                                  );
-                                } else {
-                                  return const Icon(
-                                    Icons.star_border_outlined,
-                                  );
-                                }
-                              },
-                              onRatingUpdate: (rating) {
-                                print(rating);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      Text(
-                        'You have completed this lesson\n10 times.',
-                        style: TextStyles.content.copyWith(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+            Expanded(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: 6,
+                itemBuilder: (context, index) {
+                  Color _color = colors[index % 4];
+                  return buildAchievementItem(index, _color);
+                },
               ),
             ),
           ],
@@ -237,6 +188,76 @@ class _AchievementPageState extends State<AchievementPage> {
               ),
             ],
           )),
+    );
+  }
+
+  Widget buildAchievementItem(int index, Color color) {
+    Size size = MediaQuery.of(context).size;
+    return Container(
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      padding: EdgeInsets.all(15),
+      margin: EdgeInsets.only(bottom: 20),
+      child: Row(
+        children: [
+          Image.asset(
+            AssetHelper.trophyAchievement,
+            width: 72,
+          ),
+          Gap(10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: size.width * 0.62,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Studious',
+                      style: TextStyles.heading.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                    RatingBar.builder(
+                      ignoreGestures: true,
+                      itemSize: 24,
+                      initialRating: rating,
+                      minRating: 1,
+                      direction: Axis.horizontal,
+                      allowHalfRating: true,
+                      unratedColor: Colors.white,
+                      itemCount: 5,
+                      itemPadding: EdgeInsets.symmetric(horizontal: 1.0),
+                      itemBuilder: (context, index) {
+                        if (index < rating) {
+                          return const Icon(
+                            Icons.star,
+                            color: Colors.orange,
+                          );
+                        } else {
+                          return const Icon(
+                            Icons.star_border_outlined,
+                          );
+                        }
+                      },
+                      onRatingUpdate: (rating) {},
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                'You have completed this lesson\n10 times.',
+                style: TextStyles.content.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
