@@ -26,4 +26,8 @@ class AssetHelper {
 
   //Achievement Page
   static const String trophyAchievement = iconAssets + 'trophyachievement.png';
+
+  //Listening Main Page
+  static const String listeningMain = imgAssets + 'listenmain.png';
+  static const String itemListen = iconAssets + 'itemlisten.png';
 }

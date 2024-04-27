@@ -136,6 +136,28 @@ class TextStyles {
     fontWeight: FontWeight.w300,
     fontFamily: AppFonts.lexend,
   );
+
+  //Listening Main Page
+  static const TextStyle titlePage = TextStyle(
+    fontSize: 28,
+    color: ColorPalette.titlePage,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.lexend,
+  );
+  static const TextStyle itemTitle = TextStyle(
+    fontSize: 18,
+    color: ColorPalette.titlePage,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.lexend,
+    letterSpacing: -0.7,
+  );
+  static const TextStyle itemprogress = TextStyle(
+    fontSize: 10,
+    color: Color(0xff898A8D),
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.poppins,
+    letterSpacing: -0.41,
+  );
 }
 
 class AppFonts {
