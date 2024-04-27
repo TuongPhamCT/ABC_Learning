@@ -114,6 +114,28 @@ class TextStyles {
     fontWeight: FontWeight.normal,
     fontFamily: AppFonts.inter,
   );
+
+  //Achievement Page
+  static const TextStyle pageTitle = TextStyle(
+    fontSize: 18,
+    color: ColorPalette.pageTitle,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.lexend,
+    letterSpacing: -0.7,
+  );
+  static const TextStyle heading = TextStyle(
+    fontSize: 18,
+    color: Colors.black,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppFonts.lexend,
+    letterSpacing: -1,
+  );
+  static const TextStyle content = TextStyle(
+    fontSize: 12,
+    color: Colors.black,
+    fontWeight: FontWeight.w300,
+    fontFamily: AppFonts.lexend,
+  );
 }
 
 class AppFonts {

@@ -23,4 +23,7 @@ class AssetHelper {
   static const String iconlisten = iconAssets + 'iconListening.png';
   static const String iconread = iconAssets + 'iconReading.png';
   static const String iconexecise = iconAssets + 'iconExercise.png';
+
+  //Achievement Page
+  static const String trophyAchievement = iconAssets + 'trophyachievement.png';
 }

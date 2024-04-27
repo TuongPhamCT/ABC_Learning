@@ -1,6 +1,7 @@
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/achievement_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -277,42 +278,53 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(
-                  width: 1.0, color: Colors.grey), // Đường border ở trên cùng
-            ),
+        decoration: BoxDecoration(
+          border: Border(
+            top: BorderSide(width: 1.0, color: Colors.grey.withOpacity(0.3)),
           ),
-          child: BottomNavigationBar(
-            selectedItemColor: ColorPalette.primaryColor.withOpacity(0.7),
-            iconSize: 33,
-            currentIndex: _selectedIndex,
-            onTap: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            items: [
-              BottomNavigationBarItem(
-                icon: Icon(
-                  Icons.menu_book_sharp,
-                ),
-                label: 'Home',
+        ),
+        child: BottomNavigationBar(
+          selectedItemColor: ColorPalette.primaryColor.withOpacity(0.7),
+          iconSize: 33,
+          currentIndex: _selectedIndex,
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+            switch (index) {
+              case 0:
+                Navigator.of(context).pushNamed(HomePage.routeName);
+                break;
+              case 1:
+                Navigator.of(context).pushNamed(AchievementPage.routeName);
+                break;
+              // case 2:
+              //   Navigator.pushReplacementNamed(context, '/profile');
+              //   break;
+            }
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.menu_book_sharp,
               ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  FontAwesomeIcons.trophy,
-                ),
-                label: 'Library',
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                FontAwesomeIcons.trophy,
               ),
-              BottomNavigationBarItem(
-                icon: Icon(
-                  FontAwesomeIcons.circleUser,
-                ),
-                label: 'Profile',
+              label: 'Achievement',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(
+                FontAwesomeIcons.circleUser,
               ),
-            ],
-          )),
+              label: 'Profile',
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

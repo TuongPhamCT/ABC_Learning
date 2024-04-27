@@ -1,3 +1,4 @@
+import 'package:abc_learning_app/page/achievement_page.dart';
 import 'package:abc_learning_app/page/age_profile_page.dart';
 import 'package:abc_learning_app/page/email_profile_page.dart';
 import 'package:abc_learning_app/page/forgot_password_page.dart';
@@ -28,4 +29,5 @@ final Map<String, WidgetBuilder> routes = {
   NoInteretPage.routeName: (context) => NoInteretPage(),
   ForgotPasswordPage.routeName: (context) => ForgotPasswordPage(),
   HomePage.routeName: (context) => HomePage(),
+  AchievementPage.routeName: (context) => AchievementPage(),
 };
