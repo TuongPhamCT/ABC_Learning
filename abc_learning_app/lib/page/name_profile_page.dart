@@ -7,14 +7,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
 class NameProfilePage extends StatefulWidget {
-  const NameProfilePage({super.key});
+  final String age;
+  const NameProfilePage({super.key, required this.age});
   static const String routeName = 'name_profile_page';
-
   @override
   State<NameProfilePage> createState() => _NameProfilePageState();
 }
 
 class _NameProfilePageState extends State<NameProfilePage> {
+  final TextEditingController _nameController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -63,6 +64,7 @@ class _NameProfilePageState extends State<NameProfilePage> {
                     InputFrame(
                       hintText: 'Your Name',
                       textAlign: TextAlign.center,
+                      controller: _nameController,
                     ),
                     const Gap(36),
                     ElevatedButton(

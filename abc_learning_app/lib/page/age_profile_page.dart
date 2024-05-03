@@ -74,7 +74,9 @@ class _AgeProfileState extends State<AgeProfile> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => NameProfilePage(),
+                            builder: (context) => NameProfilePage(
+                              age: _ageController.text,
+                            ),
                           ),
                         );
                       },

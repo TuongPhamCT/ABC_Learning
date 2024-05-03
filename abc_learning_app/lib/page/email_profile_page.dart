@@ -8,8 +8,9 @@ import 'package:gap/gap.dart';
 
 class EmailProfile extends StatefulWidget {
   final String age;
-
-  const EmailProfile({Key? key, required this.age}) : super(key: key);
+  final String name;
+  const EmailProfile({Key? key, required this.age, required this.name})
+      : super(key: key);
   static const String routeName = 'email_profile_page';
 
   @override
@@ -76,6 +77,7 @@ class _EmailProfileState extends State<EmailProfile> {
                           MaterialPageRoute(
                             builder: (context) => PasswordProfile(
                               age: widget.age,
+                              name: widget.name,
                               email: _emailController.text,
                             ),
                           ),

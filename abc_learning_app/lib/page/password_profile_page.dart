@@ -10,11 +10,14 @@ import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
+import 'package:abc_learning_app/page/login_page.dart';
 
 class PasswordProfile extends StatefulWidget {
   final String age;
+  final String name;
   final String email;
-  const PasswordProfile({Key? key, required this.age, required this.email})
+  const PasswordProfile(
+      {Key? key, required this.age, required this.email, required this.name})
       : super(key: key);
 
   static const String routeName = 'password_profile_page';
@@ -136,50 +139,49 @@ class _PasswordProfileState extends State<PasswordProfile> {
                       textAlign: TextAlign.center,
                       isPassword: true,
                       obscureCharacter: 'X',
-                      controller: _passwordController,
+                      controller: _confirmationCodeController,
                     ),
                     const Gap(36),
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(HomePage.routeName);
-                        //_showConfirmationDialog(context); //Hien thi dialog xac nhan OTP
-                        // try {
-                        //   UserCredential userCredential = await FirebaseAuth
-                        //       .instance
-                        //       .createUserWithEmailAndPassword(
-                        //     email: widget.email,
-                        //     password: _passwordController.text,
-                        //   );
+                      onPressed: () async {
+                        try {
+                          UserCredential userCredential = await FirebaseAuth
+                              .instance
+                              .createUserWithEmailAndPassword(
+                            email: widget.email,
+                            password: _passwordController.text,
+                          );
 
-                        //   // Save additional user information to Firestore
-                        //   await FirebaseFirestore.instance
-                        //       .collection('users')
-                        //       .doc(userCredential.user!.uid)
-                        //       .set({
-                        //     'age': widget.age,
-                        //     'email': widget.email,
-                        //     'avatar': "",
-                        //     'phoneNumber': "",
-                        //     "address": "",
-                        //     "gender": ""
-                        //   });
+                          // Save additional user information to Firestore
+                          await FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(userCredential.user!.uid)
+                              .set({
+                            'age': widget.age,
+                            'email': widget.email,
+                            'name': widget.name,
+                            'avatar': "",
+                            'phoneNumber': "",
+                            "address": "",
+                            "gender": ""
+                          });
 
-                        //   // Navigate to home screen or next step
-                        //   // For example, you can navigate to a home screen here
-                        //   Navigator.push(
-                        //       context,
-                        //       MaterialPageRoute(
-                        //           builder: (context) => NoInteretPage()));
-                        // } catch (e) {
-                        //   print('Error: $e');
-                        //   // Handle error, for example, display a snackbar
-                        //   ScaffoldMessenger.of(context).showSnackBar(
-                        //     SnackBar(
-                        //       content: Text(
-                        //           'Đăng ký không thành công. Vui lòng thử lại sau.'),
-                        //     ),
-                        //   );
-                        // }
+                          // Navigate to home screen or next step
+                          // For example, you can navigate to a home screen here
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => LoginPage()));
+                        } catch (e) {
+                          print('Error: $e');
+                          // Handle error, for example, display a snackbar
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Đăng ký không thành công. Vui lòng thử lại sau.'),
+                            ),
+                          );
+                        }
                       },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
