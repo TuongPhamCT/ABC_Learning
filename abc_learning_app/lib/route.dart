@@ -20,12 +20,16 @@ final Map<String, WidgetBuilder> routes = {
   LoginPage.routeName: (context) => LoginPage(),
   RegisterPage.routeName: (context) => RegisterPage(),
   AgeProfile.routeName: (context) => AgeProfile(),
-  NameProfilePage.routeName: (context) => NameProfilePage(),
+  NameProfilePage.routeName: (context) => NameProfilePage(
+        age: '',
+      ),
   EmailProfile.routeName: (context) => const EmailProfile(
         age: '', // Ensure constructor now accepts `age`
+        name: '',
       ),
   PasswordProfile.routeName: (context) => const PasswordProfile(
         age: '',
+        name: '',
         email: '',
       ),
   NoInteretPage.routeName: (context) => NoInteretPage(),

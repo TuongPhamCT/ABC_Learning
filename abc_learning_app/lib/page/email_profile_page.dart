@@ -8,8 +8,9 @@ import 'package:gap/gap.dart';
 
 class EmailProfile extends StatefulWidget {
   final String age;
-
-  const EmailProfile({Key? key, required this.age}) : super(key: key);
+  final String name;
+  const EmailProfile({Key? key, required this.age, required this.name})
+      : super(key: key);
   static const String routeName = 'email_profile_page';
 
   @override
@@ -71,11 +72,34 @@ class _EmailProfileState extends State<EmailProfile> {
                     const Gap(36),
                     ElevatedButton(
                       onPressed: () {
+                        // Kiểm tra xem trường tuổi có được điền vào không
+                        if (_emailController.text.isEmpty) {
+                          // Hiển thị một thông báo lỗi nếu trường tuổi trống
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Thông báo'),
+                                content: Text('Vui lòng nhập email của bạn.'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Đóng'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          return; // Dừng hàm ở đây nếu trường tuổi trống
+                        }
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) => PasswordProfile(
                               age: widget.age,
+                              name: widget.name,
                               email: _emailController.text,
                             ),
                           ),
