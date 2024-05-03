@@ -69,7 +69,37 @@ class _NameProfilePageState extends State<NameProfilePage> {
                     const Gap(36),
                     ElevatedButton(
                       onPressed: () {
-                        Navigator.of(context).pushNamed(EmailProfile.routeName);
+                        // Kiểm tra xem trường tuổi có được điền vào không
+                        if (_nameController.text.isEmpty) {
+                          // Hiển thị một thông báo lỗi nếu trường tuổi trống
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Thông báo'),
+                                content: Text('Vui lòng nhập tên của bạn.'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Đóng'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          return; // Dừng hàm ở đây nếu trường tuổi trống
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EmailProfile(
+                              age: widget.age,
+                              name: _nameController.text,
+                            ),
+                          ),
+                        );
                       },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(

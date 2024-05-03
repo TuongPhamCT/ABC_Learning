@@ -72,6 +72,28 @@ class _EmailProfileState extends State<EmailProfile> {
                     const Gap(36),
                     ElevatedButton(
                       onPressed: () {
+                        // Kiểm tra xem trường tuổi có được điền vào không
+                        if (_emailController.text.isEmpty) {
+                          // Hiển thị một thông báo lỗi nếu trường tuổi trống
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Thông báo'),
+                                content: Text('Vui lòng nhập email của bạn.'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Đóng'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          return; // Dừng hàm ở đây nếu trường tuổi trống
+                        }
                         Navigator.push(
                           context,
                           MaterialPageRoute(

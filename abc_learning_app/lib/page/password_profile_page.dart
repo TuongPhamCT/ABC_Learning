@@ -26,11 +26,20 @@ class PasswordProfile extends StatefulWidget {
   State<PasswordProfile> createState() => _PasswordProfileState();
 }
 
+class LoadingSpinner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+}
+
 class _PasswordProfileState extends State<PasswordProfile> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmationCodeController =
       TextEditingController();
-
+  bool _isLoading = false; // Biến để kiểm soát hiển thị của LoadingSpinner
   void _showConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -144,6 +153,41 @@ class _PasswordProfileState extends State<PasswordProfile> {
                     const Gap(36),
                     ElevatedButton(
                       onPressed: () async {
+                        // Kiểm tra xem trường tuổi có được điền vào không
+                        if (_passwordController.text.isEmpty ||
+                            _confirmationCodeController.text.isEmpty) {
+                          // Hiển thị một thông báo lỗi nếu trường tuổi trống
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Thông báo'),
+                                content: Text(
+                                    'Vui lòng điền đầy đủ password và xác thực password của bạn.'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('Đóng'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                          return; // Dừng hàm ở đây nếu trường tuổi trống
+                        }
+                        if (_passwordController.text !=
+                            _confirmationCodeController.text) {
+                          // Hiển thị một thông báo lỗi nếu mật khẩu và xác nhận mật khẩu không khớp
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Mật khẩu và xác nhận mật khẩu không khớp.'),
+                            ),
+                          );
+                          return; // Dừng hàm ở đây nếu mật khẩu không khớp
+                        }
                         try {
                           UserCredential userCredential = await FirebaseAuth
                               .instance
@@ -151,6 +195,10 @@ class _PasswordProfileState extends State<PasswordProfile> {
                             email: widget.email,
                             password: _passwordController.text,
                           );
+                          // Hiển thị vòng quay
+                          setState(() {
+                            _isLoading = true;
+                          });
 
                           // Save additional user information to Firestore
                           await FirebaseFirestore.instance
@@ -165,13 +213,34 @@ class _PasswordProfileState extends State<PasswordProfile> {
                             "address": "",
                             "gender": ""
                           });
+                          // Hiển thị vòng quay
+                          setState(() {
+                            _isLoading = true;
+                          });
 
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Thông báo'),
+                                content: Text('Đăng ký thành công.'),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  LoginPage()));
+                                    },
+                                    child: Text('Đóng'),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
                           // Navigate to home screen or next step
                           // For example, you can navigate to a home screen here
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LoginPage()));
                         } catch (e) {
                           print('Error: $e');
                           // Handle error, for example, display a snackbar
