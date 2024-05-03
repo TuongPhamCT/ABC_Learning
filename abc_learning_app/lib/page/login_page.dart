@@ -4,6 +4,7 @@ import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/page/forgot_password_page.dart';
+import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -123,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           );
                           Navigator.of(context)
-                              .pushReplacementNamed(NoInteretPage.routeName);
+                              .pushReplacementNamed(HomePage.routeName);
                         } on FirebaseAuthException catch (e) {
                           // Handle errors
                           print(e

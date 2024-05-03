@@ -2,6 +2,8 @@ import 'package:abc_learning_app/component/input_frame.dart';
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/login_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
@@ -46,7 +48,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   Container(
                     alignment: Alignment.center,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        String email = _emailController.text.trim();
+                        _resetPassword(email);
+                      },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                             EdgeInsets.all(8)),
@@ -89,5 +94,50 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       ),
     );
+  }
+
+  // Hàm để gửi email thiết lập lại mật khẩu
+  void _resetPassword(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      // Hiển thị thông báo thành công
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Success'),
+            content: Text('A password reset link has been sent to your email.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed(LoginPage.routeName);
+                },
+                child: Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      // Xử lý lỗi và hiển thị thông báo
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Error'),
+            content: Text(
+                'Failed to send password reset email. Please try again later.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('Close'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 }
