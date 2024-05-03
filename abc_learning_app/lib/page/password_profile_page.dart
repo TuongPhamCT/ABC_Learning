@@ -188,6 +188,10 @@ class _PasswordProfileState extends State<PasswordProfile> {
                           );
                           return; // Dừng hàm ở đây nếu mật khẩu không khớp
                         }
+                        // Hiển thị vòng quay
+                        setState(() {
+                          _isLoading = true;
+                        });
                         try {
                           UserCredential userCredential = await FirebaseAuth
                               .instance
@@ -195,11 +199,6 @@ class _PasswordProfileState extends State<PasswordProfile> {
                             email: widget.email,
                             password: _passwordController.text,
                           );
-                          // Hiển thị vòng quay
-                          setState(() {
-                            _isLoading = true;
-                          });
-
                           // Save additional user information to Firestore
                           await FirebaseFirestore.instance
                               .collection('users')
@@ -217,7 +216,6 @@ class _PasswordProfileState extends State<PasswordProfile> {
                           setState(() {
                             _isLoading = true;
                           });
-
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
