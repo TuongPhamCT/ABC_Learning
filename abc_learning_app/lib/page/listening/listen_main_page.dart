@@ -75,8 +75,9 @@ class _ListenMainPageState extends State<ListenMainPage> {
                         height: 42,
                         value: 'item1',
                         child: Container(
+                          alignment: Alignment.center,
                           height: 42,
-                          width: 42,
+                          width: 100,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
@@ -92,7 +93,6 @@ class _ListenMainPageState extends State<ListenMainPage> {
                             borderRadius: BorderRadius.circular(8),
                             child: Image.asset(
                               AssetHelper.iconlisten,
-                              fit: BoxFit.fill,
                             ),
                           ),
                         ),
@@ -103,7 +103,8 @@ class _ListenMainPageState extends State<ListenMainPage> {
                         value: 'item2',
                         child: Container(
                           height: 42,
-                          width: 42,
+                          width: 100,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
@@ -130,7 +131,8 @@ class _ListenMainPageState extends State<ListenMainPage> {
                         value: 'item3',
                         child: Container(
                           height: 42,
-                          width: 42,
+                          width: 100,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
