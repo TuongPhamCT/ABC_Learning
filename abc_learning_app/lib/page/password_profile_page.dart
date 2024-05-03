@@ -213,9 +213,6 @@ class _PasswordProfileState extends State<PasswordProfile> {
                             "gender": ""
                           });
                           // Hiển thị vòng quay
-                          setState(() {
-                            _isLoading = true;
-                          });
                           showDialog(
                             context: context,
                             builder: (BuildContext context) {
@@ -271,7 +268,7 @@ class _PasswordProfileState extends State<PasswordProfile> {
                   ],
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
