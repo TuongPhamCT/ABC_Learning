@@ -1,6 +1,7 @@
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/listening/in_a_topic_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -71,6 +72,10 @@ class _ListenMainPageState extends State<ListenMainPage> {
                     surfaceTintColor: Colors.transparent,
                     itemBuilder: (context) => [
                       PopupMenuItem(
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(ListenTopicPage.routeName);
+                        },
                         padding: EdgeInsets.all(5),
                         height: 42,
                         value: 'item1',
