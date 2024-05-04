@@ -1,6 +1,7 @@
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/listening/in_a_topic_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -71,12 +72,17 @@ class _ListenMainPageState extends State<ListenMainPage> {
                     surfaceTintColor: Colors.transparent,
                     itemBuilder: (context) => [
                       PopupMenuItem(
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(ListenTopicPage.routeName);
+                        },
                         padding: EdgeInsets.all(5),
                         height: 42,
                         value: 'item1',
                         child: Container(
+                          alignment: Alignment.center,
                           height: 42,
-                          width: 42,
+                          width: 100,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
@@ -92,7 +98,6 @@ class _ListenMainPageState extends State<ListenMainPage> {
                             borderRadius: BorderRadius.circular(8),
                             child: Image.asset(
                               AssetHelper.iconlisten,
-                              fit: BoxFit.fill,
                             ),
                           ),
                         ),
@@ -103,7 +108,8 @@ class _ListenMainPageState extends State<ListenMainPage> {
                         value: 'item2',
                         child: Container(
                           height: 42,
-                          width: 42,
+                          width: 100,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),
@@ -130,7 +136,8 @@ class _ListenMainPageState extends State<ListenMainPage> {
                         value: 'item3',
                         child: Container(
                           height: 42,
-                          width: 42,
+                          width: 100,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(8),

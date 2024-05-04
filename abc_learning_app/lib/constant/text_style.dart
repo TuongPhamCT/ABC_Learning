@@ -158,6 +158,26 @@ class TextStyles {
     fontFamily: AppFonts.poppins,
     letterSpacing: -0.41,
   );
+
+  //question
+  static const TextStyle questionResult = TextStyle(
+    fontSize: 20,
+    color: Colors.green,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppFonts.poppins,
+  );
+  static const TextStyle questionLabel = TextStyle(
+    fontSize: 17,
+    color: Colors.green,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.poppins,
+  );
+  static const TextStyle trueAnswer = TextStyle(
+    fontSize: 24,
+    color: Colors.green,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppFonts.poppins,
+  );
 }
 
 class AppFonts {
