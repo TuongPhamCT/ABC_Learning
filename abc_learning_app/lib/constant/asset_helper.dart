@@ -34,4 +34,7 @@ class AssetHelper {
   //Reading Main Page
   static const String readingMain = imgAssets + 'read_main.png';
   static const String storyilu = imgAssets + 'story_ilu.png';
+
+  //Exercise Main Page
+  static const String exerciseMain = imgAssets + 'exercise_main.png';
 }

@@ -1,6 +1,7 @@
 import 'package:abc_learning_app/page/achievement_page.dart';
 import 'package:abc_learning_app/page/age_profile_page.dart';
 import 'package:abc_learning_app/page/email_profile_page.dart';
+import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
 import 'package:abc_learning_app/page/forgot_password_page.dart';
 import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/listening/in_a_topic_page.dart';
@@ -42,4 +43,5 @@ final Map<String, WidgetBuilder> routes = {
   ListenTopicPage.routeName: (context) => ListenTopicPage(),
   ReadMainPage.routeName: (context) => ReadMainPage(),
   ReadSubPage.routeName: (context) => ReadSubPage(),
+  ExerciseMainPage.routeName: (context) => ExerciseMainPage(),
 };
