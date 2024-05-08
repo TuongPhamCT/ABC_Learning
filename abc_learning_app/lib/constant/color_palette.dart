@@ -29,4 +29,6 @@ class ColorPalette {
   //Listening Main Page
   static const Color titlePage = Color(0xff43463F);
   static const Color itemBorder = Color(0xffDADADA);
+  static const Color answerBorder = Color(0xff979797);
+  static const Color answerBackground = Color(0xffE5E5E5);
 }

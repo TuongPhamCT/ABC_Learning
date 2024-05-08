@@ -178,6 +178,32 @@ class TextStyles {
     fontWeight: FontWeight.w500,
     fontFamily: AppFonts.poppins,
   );
+
+  //Reading Page
+  static const TextStyle storyTitle = TextStyle(
+    fontSize: 16,
+    color: Colors.black,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppFonts.poppins,
+  );
+  static const TextStyle storyContent = TextStyle(
+    fontSize: 13,
+    color: Colors.black,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.poppins,
+  );
+  static const TextStyle storyQuestion = TextStyle(
+    fontSize: 20,
+    color: Colors.black,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppFonts.poppins,
+  );
+  static const TextStyle storyAnswer = TextStyle(
+      fontSize: 18,
+      color: Colors.white,
+      fontWeight: FontWeight.normal,
+      fontFamily: AppFonts.poppins,
+      letterSpacing: -0.41);
 }
 
 class AppFonts {
