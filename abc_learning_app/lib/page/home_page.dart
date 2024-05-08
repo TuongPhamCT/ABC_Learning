@@ -2,6 +2,7 @@ import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/page/achievement_page.dart';
+import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
 import 'package:abc_learning_app/page/listening/listen_main_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -218,7 +219,10 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(ExerciseMainPage.routeName);
+                        },
                         child: Container(
                           padding: EdgeInsets.all(15),
                           margin: EdgeInsets.only(bottom: 15),
