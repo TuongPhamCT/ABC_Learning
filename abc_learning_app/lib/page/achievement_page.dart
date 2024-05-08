@@ -1,14 +1,13 @@
-import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/model/achievement_model.dart';
+import 'package:abc_learning_app/model/progress_model.dart';
 import 'package:abc_learning_app/page/home_page.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
-import 'package:get/get.dart';
 
 class AchievementPage extends StatefulWidget {
   const AchievementPage({super.key});
@@ -19,6 +18,13 @@ class AchievementPage extends StatefulWidget {
 }
 
 class _AchievementPageState extends State<AchievementPage> {
+  static final AchievementRepo _achievementRepo = AchievementRepo();
+  static final AchievementProgressRepo _achievementProgressRepo =
+      AchievementProgressRepo();
+
+  int _totalAchievement = 0;
+  int _completePercent = 0;
+
   int _selectedIndex = 1;
   double rating = 3;
   List<Color> colors = [
@@ -34,112 +40,152 @@ class _AchievementPageState extends State<AchievementPage> {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Container(
-              height: size.height * 0.1,
-              child: Stack(
-                alignment: Alignment.bottomRight,
-                children: [
-                  Container(
-                    width: size.width,
-                    alignment: Alignment.bottomCenter,
-                    child: Container(
-                      height: 45,
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Achievement',
-                        style: TextStyles.pageTitle,
+        child: FutureBuilder(
+            future: Future.wait([
+              _achievementRepo.getAllAchievements(),
+              _achievementProgressRepo.getAchievementProgressById(
+                  FirebaseAuth.instance.currentUser!.uid)
+            ]),
+            builder: (BuildContext context, AsyncSnapshot snapshot) {
+              if (snapshot.hasData) {
+                List<Achievement> achievements = snapshot.data[0];
+                AchievementProgress achievementProgress = snapshot.data[1];
+                _totalAchievement = achievements.length;
+                int completedAchievements = 0;
+                for (Achievement achievement in achievements) {
+                  Progress currentProgress = achievementProgress.progresses
+                      .singleWhere(
+                          (progress) =>
+                              progress.achievementId == achievement.id,
+                          orElse: () =>
+                              Progress(achievementId: '0', currentProgress: 0));
+                  if (currentProgress.currentProgress >= achievement.maxIndex) {
+                    completedAchievements++;
+                  }
+                }
+                _completePercent =
+                    (completedAchievements / _totalAchievement * 100).round();
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: size.height * 0.1,
+                      child: Stack(
+                        alignment: Alignment.bottomRight,
+                        children: [
+                          Container(
+                            width: size.width,
+                            alignment: Alignment.bottomCenter,
+                            child: Container(
+                              height: 45,
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Achievement',
+                                style: TextStyles.pageTitle,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: List<BoxShadow>.generate(
+                                1,
+                                (index) => BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  spreadRadius: 1,
+                                  blurRadius: 2,
+                                  offset: const Offset(0, 0),
+                                ),
+                              ),
+                            ),
+                            child: IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.menu,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: List<BoxShadow>.generate(
-                        1,
-                        (index) => BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 2,
-                          offset: Offset(0, 0),
+                    const Gap(40),
+                    Container(
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(2),
+                        border: Border.all(
+                          color: ColorPalette.achievementBorder,
+                          width: 1,
                         ),
                       ),
-                    ),
-                    child: IconButton(
-                      onPressed: () {},
-                      icon: Icon(
-                        Icons.menu,
+                      child: Row(
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 72,
+                                height: 72,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 7,
+                                  backgroundColor: Colors.grey,
+                                  value: _completePercent / 100,
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                          Colors.green),
+                                ),
+                              ),
+                              Text(
+                                '$_completePercent %',
+                                style: TextStyles.heading,
+                              ),
+                            ],
+                          ),
+                          const Gap(10),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Total Achievements: $_totalAchievement',
+                                style: TextStyles.heading,
+                              ),
+                              const Text(
+                                'Great job, John! Complete your\nachievements now',
+                                style: TextStyles.content,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Gap(40),
-            Container(
-              padding: EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(2),
-                border: Border.all(
-                  color: ColorPalette.achievementBorder,
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 72,
-                        height: 72,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 7,
-                          backgroundColor: Colors.grey,
-                          value: 0.8,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.green),
-                        ),
+                    const Gap(20),
+                    Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: achievements.length,
+                        itemBuilder: (context, index) {
+                          Color color = colors[index % 4];
+                          String currentAchievement = achievements[index].id;
+                          int currentProgress = achievementProgress.progresses
+                              .singleWhere(
+                                  (progress) =>
+                                      progress.achievementId ==
+                                      currentAchievement,
+                                  orElse: () => Progress(
+                                      achievementId: '0', currentProgress: 0))
+                              .currentProgress;
+                          return buildAchievementItem(index, color,
+                              achievements[index], currentProgress);
+                        },
                       ),
-                      Text(
-                        '80 %',
-                        style: TextStyles.heading,
-                      ),
-                    ],
-                  ),
-                  Gap(10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Total Achievement: 20',
-                        style: TextStyles.heading,
-                      ),
-                      Text(
-                        'Great job, John! Complete your\nachievements now',
-                        style: TextStyles.content,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Gap(20),
-            Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: 6,
-                itemBuilder: (context, index) {
-                  Color _color = colors[index % 4];
-                  return buildAchievementItem(index, _color);
-                },
-              ),
-            ),
-          ],
-        ),
+                    )
+                  ],
+                );
+              } else {
+                return const Center(child: CircularProgressIndicator());
+              }
+            }),
       ),
       bottomNavigationBar: Container(
           decoration: BoxDecoration(
@@ -167,7 +213,7 @@ class _AchievementPageState extends State<AchievementPage> {
                 //   break;
               }
             },
-            items: [
+            items: const [
               BottomNavigationBarItem(
                 icon: Icon(
                   Icons.menu_book_sharp,
@@ -191,67 +237,72 @@ class _AchievementPageState extends State<AchievementPage> {
     );
   }
 
-  Widget buildAchievementItem(int index, Color color) {
+  Widget buildAchievementItem(
+      int index, Color color, Achievement achievement, int currentProgress) {
     Size size = MediaQuery.of(context).size;
     return Container(
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(5),
       ),
-      padding: EdgeInsets.all(15),
-      margin: EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(15),
+      margin: const EdgeInsets.only(bottom: 20),
       child: Row(
         children: [
-          Image.asset(
-            AssetHelper.trophyAchievement,
+          Image.network(
+            achievement.icon,
             width: 72,
           ),
-          Gap(10),
+          const Gap(10),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: size.width * 0.62,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Studious',
-                      style: TextStyles.heading.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                    RatingBar.builder(
-                      ignoreGestures: true,
-                      itemSize: 24,
-                      initialRating: rating,
-                      minRating: 1,
-                      direction: Axis.horizontal,
-                      allowHalfRating: true,
-                      unratedColor: Colors.white,
-                      itemCount: 5,
-                      itemPadding: EdgeInsets.symmetric(horizontal: 1.0),
-                      itemBuilder: (context, index) {
-                        if (index < rating) {
-                          return const Icon(
-                            Icons.star,
-                            color: Colors.orange,
-                          );
-                        } else {
-                          return const Icon(
-                            Icons.star_border_outlined,
-                          );
-                        }
-                      },
-                      onRatingUpdate: (rating) {},
-                    ),
-                  ],
+              // width: size.width * 0.62,
+
+              Text(
+                achievement.name,
+                style: TextStyles.heading.copyWith(
+                  color: Colors.white,
                 ),
               ),
+              RatingBar.builder(
+                ignoreGestures: true,
+                itemSize: 24,
+                initialRating: (currentProgress / achievement.maxIndex) * 5,
+                minRating: 1,
+                direction: Axis.horizontal,
+                allowHalfRating: true,
+                unratedColor: Colors.white,
+                itemCount: 5,
+                itemPadding: const EdgeInsets.symmetric(horizontal: 1.0),
+                itemBuilder: (context, index) {
+                  if (index < (currentProgress / achievement.maxIndex) * 5) {
+                    return const Icon(
+                      Icons.star,
+                      color: Colors.orange,
+                    );
+                  } else {
+                    return const Icon(
+                      Icons.star_border_outlined,
+                    );
+                  }
+                },
+                onRatingUpdate: (rating) {},
+              ),
               Text(
-                'You have completed this lesson\n10 times.',
+                'Completed: ${currentProgress >= achievement.maxIndex ? achievement.maxIndex : currentProgress}/${achievement.maxIndex}',
                 style: TextStyles.content.copyWith(
                   color: Colors.white,
+                ),
+              ),
+              const Gap(5),
+              SizedBox(
+                width: size.width - 200,
+                child: Text(
+                  achievement.description,
+                  style: TextStyles.content.copyWith(
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],

@@ -2,6 +2,7 @@ import 'package:abc_learning_app/component/dependency_injection.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/firebase_options.dart';
 import 'package:abc_learning_app/helper/local_storage_helper.dart';
+import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/listening/in_a_topic_page.dart';
 import 'package:abc_learning_app/page/splash_page.dart';
 import 'package:abc_learning_app/page/starter_page.dart';
@@ -70,7 +71,8 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    return _showSplash ? SplashPage() : StarterPage();
+    // return _showSplash ? SplashPage() : StarterPage();
+    return FirebaseAuth.instance.currentUser == null ? StarterPage() : HomePage();
     // : StreamBuilder<User?>(
     //     stream: FirebaseAuth.instance.authStateChanges(),
     //     builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
