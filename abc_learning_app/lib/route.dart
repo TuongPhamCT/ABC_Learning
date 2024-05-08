@@ -9,6 +9,8 @@ import 'package:abc_learning_app/page/login_page.dart';
 import 'package:abc_learning_app/page/name_profile_page.dart';
 import 'package:abc_learning_app/page/no_network_page.dart';
 import 'package:abc_learning_app/page/password_profile_page.dart';
+import 'package:abc_learning_app/page/reading/read_main_page.dart';
+import 'package:abc_learning_app/page/reading/read_sub_page.dart';
 import 'package:abc_learning_app/page/register_page.dart';
 import 'package:abc_learning_app/page/splash_page.dart';
 import 'package:abc_learning_app/page/starter_page.dart';
@@ -38,4 +40,6 @@ final Map<String, WidgetBuilder> routes = {
   AchievementPage.routeName: (context) => AchievementPage(),
   ListenMainPage.routeName: (context) => ListenMainPage(),
   ListenTopicPage.routeName: (context) => ListenTopicPage(),
+  ReadMainPage.routeName: (context) => ReadMainPage(),
+  ReadSubPage.routeName: (context) => ReadSubPage(),
 };

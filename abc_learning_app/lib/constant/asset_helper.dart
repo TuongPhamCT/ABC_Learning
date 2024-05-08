@@ -30,4 +30,7 @@ class AssetHelper {
   //Listening Main Page
   static const String listeningMain = imgAssets + 'listenmain.png';
   static const String itemListen = iconAssets + 'itemlisten.png';
+
+  //Reading Main Page
+  static const String readingMain = imgAssets + 'read_main.png';
 }
