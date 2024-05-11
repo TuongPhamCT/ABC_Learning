@@ -2,6 +2,7 @@ import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/page/listening/in_a_topic_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -16,6 +17,14 @@ class ListenMainPage extends StatefulWidget {
 }
 
 class _ListenMainPageState extends State<ListenMainPage> {
+  void _navigateToTopicPage() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ListenTopicPage(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -183,11 +192,24 @@ class _ListenMainPageState extends State<ListenMainPage> {
             ),
             const Gap(20),
             Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: 5,
-                itemBuilder: (context, index) {
-                  return buildListenItem();
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('listening')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Something went wrong');
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+                  return ListView.builder(
+                    itemCount: snapshot.data?.docs.length,
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot document = snapshot.data!.docs[index];
+                      return buildListenItem(context, document);
+                    },
+                  );
                 },
               ),
             ),
@@ -198,62 +220,71 @@ class _ListenMainPageState extends State<ListenMainPage> {
     );
   }
 
-  Widget buildListenItem() {
+  Widget buildListenItem(BuildContext context, DocumentSnapshot document) {
     Size size = MediaQuery.of(context).size;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(
-          color: ColorPalette.itemBorder,
-          width: 1,
-        ),
-      ),
-      padding: EdgeInsets.all(15),
-      margin: EdgeInsets.only(bottom: 20),
-      child: Row(
-        children: [
-          Image.asset(
-            AssetHelper.itemListen,
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
+    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+    return GestureDetector(
+        onTap: () {
+          _navigateToTopicPage();
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(
+              color: ColorPalette.itemBorder,
+              width: 1,
+            ),
           ),
-          Gap(10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: EdgeInsets.all(15),
+          margin: EdgeInsets.only(bottom: 20),
+          child: Row(
             children: [
-              Text(
-                'Alphabet',
-                style: TextStyles.itemTitle,
+              Image.network(
+                data[
+                    'img_url'], // assuming 'image' is the field name for the image URL
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
               ),
-              const Gap(12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Gap(10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: size.width - 185,
-                    height: 10,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: LinearProgressIndicator(
-                        value: 9 / 50,
-                        backgroundColor: ColorPalette.progressbarbackground,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            ColorPalette.progressbarValue),
-                      ),
-                    ),
-                  ),
-                  Gap(8),
                   Text(
-                    '9/50',
-                    style: TextStyles.itemprogress,
+                    data[
+                        'title'], // assuming 'title' is the field name for the title
+                    style: TextStyles.itemTitle,
+                  ),
+                  const Gap(12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: size.width - 185,
+                        height: 10,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: LinearProgressIndicator(
+                            value: data['currentIndex'] /
+                                data[
+                                    'maxIndex'], // assuming 'progress' is the field name for progress
+                            backgroundColor: ColorPalette.progressbarbackground,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                ColorPalette.progressbarValue),
+                          ),
+                        ),
+                      ),
+                      Gap(8),
+                      Text(
+                        '${data['currentIndex']}/${data['maxIndex']}', // assuming 'progress' is the field name for progress
+                        style: TextStyles.itemprogress,
+                      ),
+                    ],
                   ),
                 ],
               ),
             ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 }
