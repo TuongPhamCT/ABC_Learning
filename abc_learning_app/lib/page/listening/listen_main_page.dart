@@ -17,10 +17,10 @@ class ListenMainPage extends StatefulWidget {
 }
 
 class _ListenMainPageState extends State<ListenMainPage> {
-  void _navigateToTopicPage() {
+  void _navigateToTopicPage(String unitsId) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => ListenTopicPage(),
+        builder: (context) => ListenTopicPage(unitsId: unitsId),
       ),
     );
   }
@@ -225,7 +225,7 @@ class _ListenMainPageState extends State<ListenMainPage> {
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
     return GestureDetector(
         onTap: () {
-          _navigateToTopicPage();
+          _navigateToTopicPage(data['units_id']);
         },
         child: Container(
           decoration: BoxDecoration(
