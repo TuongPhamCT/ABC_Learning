@@ -199,11 +199,26 @@ class TextStyles {
     fontFamily: AppFonts.poppins,
   );
   static const TextStyle storyAnswer = TextStyle(
-      fontSize: 18,
-      color: Colors.white,
-      fontWeight: FontWeight.normal,
-      fontFamily: AppFonts.poppins,
-      letterSpacing: -0.41);
+    fontSize: 18,
+    color: Colors.white,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.poppins,
+    letterSpacing: -0.41,
+  );
+
+  //Exercise Page
+  static const TextStyle exerciseContent = TextStyle(
+    fontSize: 24,
+    color: Colors.black,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppFonts.poppins,
+  );
+  static const TextStyle result = TextStyle(
+    fontSize: 28,
+    color: Colors.green,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppFonts.lexend,
+  );
 }
 
 class AppFonts {
