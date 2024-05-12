@@ -863,12 +863,14 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedAnswer1 = '';
-                                  isButtonOneSelected = true;
-                                });
-                              },
+                              onTap: checkAnswer
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        selectedAnswer1 = '';
+                                        isButtonOneSelected = true;
+                                      });
+                                    },
                               child: Image.asset(
                                 AssetHelper.ggAvatar,
                                 width: size.width / 3 - 40,
@@ -876,7 +878,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () {},
+                              onTap: checkAnswer ? null : () {},
                               child: Image.asset(
                                 AssetHelper.googleLogo,
                                 width: size.width / 3 - 40,
@@ -884,7 +886,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () {},
+                              onTap: checkAnswer ? null : () {},
                               child: Image.asset(
                                 AssetHelper.home,
                                 width: size.width / 3 - 40,
@@ -1006,7 +1008,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             ElevatedButton(
-                              onPressed: () {},
+                              onPressed: checkAnswer ? null : () {},
                               style: ButtonStyle(
                                 shadowColor: MaterialStateProperty.all<Color>(
                                     Colors.black.withOpacity(0.15)),
@@ -1034,7 +1036,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                               ),
                             ),
                             ElevatedButton(
-                              onPressed: () {},
+                              onPressed: checkAnswer ? null : () {},
                               style: ButtonStyle(
                                 shadowColor: MaterialStateProperty.all<Color>(
                                     Colors.black.withOpacity(0.15)),
@@ -1062,7 +1064,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                               ),
                             ),
                             ElevatedButton(
-                              onPressed: () {},
+                              onPressed: checkAnswer ? null : () {},
                               style: ButtonStyle(
                                 padding: MaterialStateProperty.all<
                                     EdgeInsetsGeometry>(EdgeInsets.all(0)),
@@ -1230,7 +1232,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        'Reading',
+                        'Exercise',
                         style:
                             TextStyles.titlePage.copyWith(color: Colors.black),
                       ),
