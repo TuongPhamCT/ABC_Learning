@@ -1,3 +1,4 @@
+import 'package:abc_learning_app/model/reading_data_model.dart';
 import 'package:abc_learning_app/page/achievement_page.dart';
 import 'package:abc_learning_app/page/age_profile_page.dart';
 import 'package:abc_learning_app/page/email_profile_page.dart';
@@ -19,12 +20,12 @@ import 'package:abc_learning_app/page/starter_page.dart';
 import 'package:flutter/material.dart';
 
 final Map<String, WidgetBuilder> routes = {
-  SplashPage.routeName: (context) => SplashPage(),
-  StarterPage.routeName: (context) => StarterPage(),
-  LoginPage.routeName: (context) => LoginPage(),
-  RegisterPage.routeName: (context) => RegisterPage(),
-  AgeProfile.routeName: (context) => AgeProfile(),
-  NameProfilePage.routeName: (context) => NameProfilePage(
+  SplashPage.routeName: (context) => const SplashPage(),
+  StarterPage.routeName: (context) => const StarterPage(),
+  LoginPage.routeName: (context) => const LoginPage(),
+  RegisterPage.routeName: (context) => const RegisterPage(),
+  AgeProfile.routeName: (context) => const AgeProfile(),
+  NameProfilePage.routeName: (context) => const NameProfilePage(
         age: '',
       ),
   EmailProfile.routeName: (context) => const EmailProfile(
@@ -36,16 +37,18 @@ final Map<String, WidgetBuilder> routes = {
         name: '',
         email: '',
       ),
-  NoInteretPage.routeName: (context) => NoInteretPage(),
-  ForgotPasswordPage.routeName: (context) => ForgotPasswordPage(),
-  HomePage.routeName: (context) => HomePage(),
-  AchievementPage.routeName: (context) => AchievementPage(),
-  ListenMainPage.routeName: (context) => ListenMainPage(),
-  ListenTopicPage.routeName: (context) => ListenTopicPage(
+  NoInteretPage.routeName: (context) => const NoInteretPage(),
+  ForgotPasswordPage.routeName: (context) => const ForgotPasswordPage(),
+  HomePage.routeName: (context) => const HomePage(),
+  AchievementPage.routeName: (context) => const AchievementPage(),
+  ListenMainPage.routeName: (context) => const ListenMainPage(),
+  ListenTopicPage.routeName: (context) => const ListenTopicPage(
         unitsId: '',
       ),
-  ReadMainPage.routeName: (context) => ReadMainPage(),
-  ReadSubPage.routeName: (context) => ReadSubPage(),
-  ExerciseMainPage.routeName: (context) => ExerciseMainPage(),
-  ExerciseSubPage.routeName: (context) => ExerciseSubPage(),
+  ReadMainPage.routeName: (context) => const ReadMainPage(),
+  ReadSubPage.routeName: (context) => ReadSubPage(
+    readingTopic : ReadingTopic(topic: "topic", img_url: "img_url", maxQuestions: 1, unitId: "unitId")
+  ),
+  ExerciseMainPage.routeName: (context) => const ExerciseMainPage(),
+  ExerciseSubPage.routeName: (context) => const ExerciseSubPage(),
 };
