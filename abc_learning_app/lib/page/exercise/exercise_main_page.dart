@@ -1,6 +1,7 @@
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/exercise/exercise_sub_page.dart';
 import 'package:abc_learning_app/page/reading/read_sub_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -129,6 +130,10 @@ class _ExerciseMainPageState extends State<ExerciseMainPage> {
                         ),
                       ),
                       PopupMenuItem(
+                        onTap: () {
+                          Navigator.pushNamed(
+                              context, ExerciseSubPage.routeName);
+                        },
                         padding: EdgeInsets.all(5),
                         height: 42,
                         value: 'item3',

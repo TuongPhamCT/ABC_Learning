@@ -1,13 +1,11 @@
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class ReadSubPage extends StatefulWidget {
   const ReadSubPage({super.key});
@@ -20,7 +18,6 @@ class ReadSubPage extends StatefulWidget {
 class _ReadSubPageState extends State<ReadSubPage> {
   int cauHoi = 1;
   PageController _pageController = PageController();
-  AudioPlayer player = AudioPlayer();
   TextEditingController textController = TextEditingController();
 
   bool checkAnswer = false;

@@ -31,4 +31,8 @@ class ColorPalette {
   static const Color itemBorder = Color(0xffDADADA);
   static const Color answerBorder = Color(0xff979797);
   static const Color answerBackground = Color(0xffE5E5E5);
+
+  //Exercise Page
+  static const Color exerciseButton = Color(0xffEF3349);
+  static const Color exerciseButtonInActive = Color(0xffF3F3F3);
 }
