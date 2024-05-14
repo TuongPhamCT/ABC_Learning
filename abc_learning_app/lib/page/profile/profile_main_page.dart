@@ -8,6 +8,8 @@ import 'package:abc_learning_app/page/age_profile_page.dart';
 import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
 import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/listening/listen_main_page.dart';
+import 'package:abc_learning_app/page/profile/privacy_page.dart';
+import 'package:abc_learning_app/page/profile/setting_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
 import 'package:abc_learning_app/page/register_page.dart';
 import 'package:flutter/cupertino.dart';
@@ -238,10 +240,16 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                           Expanded(
                             child: Container(
                               alignment: Alignment.centerRight,
-                              child: Icon(
-                                FontAwesomeIcons.edit,
-                                color: Colors.black.withOpacity(0.8),
-                                size: 30,
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context)
+                                      .pushNamed(PrivacyPage.routeName);
+                                },
+                                child: Icon(
+                                  FontAwesomeIcons.edit,
+                                  color: Colors.black.withOpacity(0.8),
+                                  size: 30,
+                                ),
                               ),
                             ),
                           ),
@@ -330,9 +338,12 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Dashboard', style: TextStyles.labelField),
-                            const Gap(15),
+                            const Gap(20),
                             GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                Navigator.of(context)
+                                    .pushNamed(SettingPage.routeName);
+                              },
                               child: Row(
                                 children: [
                                   Container(
@@ -363,8 +374,12 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                 ],
                               ),
                             ),
-                            const Gap(15),
+                            const Gap(20),
                             GestureDetector(
+                              onTap: () {
+                                Navigator.of(context)
+                                    .pushNamed(AchievementPage.routeName);
+                              },
                               child: Row(
                                 children: [
                                   Container(
@@ -395,8 +410,12 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                 ],
                               ),
                             ),
-                            const Gap(15),
+                            const Gap(20),
                             GestureDetector(
+                              onTap: () {
+                                Navigator.of(context)
+                                    .pushNamed(PrivacyPage.routeName);
+                              },
                               child: Row(
                                 children: [
                                   Container(
@@ -430,7 +449,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                           ],
                         ),
                       ),
-                      const Gap(15),
+                      const Gap(25),
                       Container(
                         width: size.width,
                         padding: EdgeInsets.all(15),

@@ -13,7 +13,9 @@ import 'package:abc_learning_app/page/login_page.dart';
 import 'package:abc_learning_app/page/name_profile_page.dart';
 import 'package:abc_learning_app/page/no_network_page.dart';
 import 'package:abc_learning_app/page/password_profile_page.dart';
+import 'package:abc_learning_app/page/profile/privacy_page.dart';
 import 'package:abc_learning_app/page/profile/profile_main_page.dart';
+import 'package:abc_learning_app/page/profile/setting_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
 import 'package:abc_learning_app/page/reading/read_sub_page.dart';
 import 'package:abc_learning_app/page/register_page.dart';
@@ -61,4 +63,6 @@ final Map<String, WidgetBuilder> routes = {
   ExerciseMainPage.routeName: (context) => const ExerciseMainPage(),
   ExerciseSubPage.routeName: (context) => const ExerciseSubPage(),
   ProfileMainPage.routeName: (context) => const ProfileMainPage(),
+  SettingPage.routeName: (context) => const SettingPage(),
+  PrivacyPage.routeName: (context) => const PrivacyPage(),
 };

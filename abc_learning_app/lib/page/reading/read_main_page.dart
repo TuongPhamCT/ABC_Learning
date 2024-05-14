@@ -3,6 +3,8 @@ import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/model/reading_data_model.dart';
 import 'package:abc_learning_app/model/reading_progress_model.dart';
+import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
+import 'package:abc_learning_app/page/listening/listen_main_page.dart';
 import 'package:abc_learning_app/page/reading/read_sub_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -74,7 +76,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.15),
                                 blurRadius: 20,
-                                offset: const Offset(0, 8),
+                                offset: Offset(0, 8),
                               ),
                             ],
                           ),
@@ -83,8 +85,11 @@ class _ReadMainPageState extends State<ReadMainPage> {
                             surfaceTintColor: Colors.transparent,
                             itemBuilder: (context) => [
                               PopupMenuItem(
-                                onTap: () {},
-                                padding: const EdgeInsets.all(5),
+                                onTap: () {
+                                  Navigator.of(context)
+                                      .pushNamed(ListenMainPage.routeName);
+                                },
+                                padding: EdgeInsets.all(5),
                                 height: 42,
                                 value: 'item1',
                                 child: Container(
@@ -98,7 +103,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.15),
                                         blurRadius: 20,
-                                        offset: const Offset(0, 8),
+                                        offset: Offset(0, 8),
                                       ),
                                     ],
                                   ),
@@ -112,11 +117,10 @@ class _ReadMainPageState extends State<ReadMainPage> {
                               ),
                               PopupMenuItem(
                                 onTap: () {
-                                  // Navigator.of(context)
-                                  //     .pushNamed(ReadSubPage.routeName);
-                                  //TODO: shit
+                                  Navigator.of(context)
+                                      .pushNamed(ReadMainPage.routeName);
                                 },
-                                padding: const EdgeInsets.all(5),
+                                padding: EdgeInsets.all(5),
                                 height: 42,
                                 value: 'item2',
                                 child: Container(
@@ -130,7 +134,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.15),
                                         blurRadius: 20,
-                                        offset: const Offset(0, 8),
+                                        offset: Offset(0, 8),
                                       ),
                                     ],
                                   ),
@@ -144,7 +148,11 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                 ),
                               ),
                               PopupMenuItem(
-                                padding: const EdgeInsets.all(5),
+                                onTap: () {
+                                  Navigator.of(context)
+                                      .pushNamed(ExerciseMainPage.routeName);
+                                },
+                                padding: EdgeInsets.all(5),
                                 height: 42,
                                 value: 'item3',
                                 child: Container(
@@ -158,7 +166,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.15),
                                         blurRadius: 20,
-                                        offset: const Offset(0, 8),
+                                        offset: Offset(0, 8),
                                       ),
                                     ],
                                   ),
@@ -172,7 +180,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                 ),
                               ),
                             ],
-                            child: const Icon(
+                            child: Icon(
                               Icons.menu,
                               color: Colors.black,
                             ),

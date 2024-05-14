@@ -39,4 +39,7 @@ class ColorPalette {
   //Profile Page
   static const Color kindUser = Color(0xff898989);
   static const Color nameFunction = Color(0xff1f1f1f);
+
+  //Setting Page
+  static const Color itemBackground = Color(0xffd9d9d9);
 }
