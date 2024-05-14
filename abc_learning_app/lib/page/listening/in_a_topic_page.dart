@@ -327,9 +327,10 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                'What animal is that?',
+                                '${snapshot.data!.get('question_2')['question_name']}',
                                 style: TextStyles.titlePage
                                     .copyWith(color: Colors.black),
+                                textAlign: TextAlign.center,
                               ),
                               const Gap(15),
                               Expanded(
@@ -598,9 +599,10 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                'What animal is that?',
+                                '${snapshot.data!.get('question_3')['question_name']}',
                                 style: TextStyles.titlePage
                                     .copyWith(color: Colors.black),
+                                textAlign: TextAlign.center,
                               ),
                               const Gap(15),
                               Expanded(
@@ -609,7 +611,9 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                     ElevatedButton(
                                       onPressed: () async {
                                         await player.play(
-                                          AssetSource('audio/test.mp3',
+                                          UrlSource(
+                                              snapshot.data!.get(
+                                                  'question_3')['audio_url'],
                                               mimeType: 'audio/mpeg'),
                                         );
                                       },
