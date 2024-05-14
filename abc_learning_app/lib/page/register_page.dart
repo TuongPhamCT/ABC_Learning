@@ -29,11 +29,11 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           Column(
             children: [
-              SizedBox(height: size.height * 0.13),
+              SizedBox(height: size.height * 0.11),
               Container(
                 child: Image.asset(AssetHelper.illustraionRegis),
               ),
-              SizedBox(height: size.height * 0.12),
+              SizedBox(height: size.height * 0.1),
               Container(
                 alignment: Alignment.topLeft,
                 padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -134,7 +134,7 @@ class CurvePainter extends CustomPainter {
     var path = Path();
 
     path.moveTo(0, size.height * 0.5 - 30);
-    path.quadraticBezierTo(size.width * 0.5 + 10, size.height * 0.5 + 130,
+    path.quadraticBezierTo(size.width * 0.5 + 10, size.height * 0.5 + 120,
         size.width, size.height * 0.5 + 50);
     path.lineTo(size.width, 0);
     path.lineTo(0, 0);
@@ -144,9 +144,9 @@ class CurvePainter extends CustomPainter {
     paint.color = Colors.white;
 
     path = Path();
-    path.moveTo(0, size.height * 0.5 - 30);
-    path.quadraticBezierTo(size.width * 0.5 + 10, size.height * 0.5 + 130,
-        size.width, size.height * 0.5 + 50);
+    path.moveTo(0, size.height * 0.5 - 10);
+    path.quadraticBezierTo(size.width * 0.5 + 10, size.height * 0.5 + 100,
+        size.width, size.height * 0.5 + 30);
     path.lineTo(size.width, size.height);
     path.lineTo(0, size.height);
 

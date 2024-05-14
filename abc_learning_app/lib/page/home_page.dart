@@ -5,6 +5,7 @@ import 'package:abc_learning_app/page/achievement_page.dart';
 import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
 import 'package:abc_learning_app/page/listening/listen_main_page.dart';
 import 'package:abc_learning_app/page/login_page.dart';
+import 'package:abc_learning_app/page/profile/profile_main_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -23,17 +24,17 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  @override
-  void initState() {
-    super.initState();
-    // Xóa lịch sử đường dẫn khi vào màn hình chính
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final navigator = Navigator.of(context);
-      if (navigator != null) {
-        navigator.popUntil((route) => route.isFirst);
-      }
-    });
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   // Xóa lịch sử đường dẫn khi vào màn hình chính
+  //   WidgetsBinding.instance.addPostFrameCallback((_) {
+  //     final navigator = Navigator.of(context);
+  //     if (navigator != null) {
+  //       navigator.popUntil((route) => route.isFirst);
+  //     }
+  //   });
+  // } // Gây lỗi khi chuyển trang bằng BottomNavigationBar
 
   @override
   Widget build(BuildContext context) {
@@ -322,9 +323,9 @@ class _HomePageState extends State<HomePage> {
               case 1:
                 Navigator.of(context).pushNamed(AchievementPage.routeName);
                 break;
-              // case 2:
-              //   Navigator.pushReplacementNamed(context, '/profile');
-              //   break;
+              case 2:
+                Navigator.of(context).pushNamed(ProfileMainPage.routeName);
+                break;
             }
           },
           items: [

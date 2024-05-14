@@ -1,7 +1,11 @@
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
+import 'package:abc_learning_app/page/exercise/exercise_sub_page.dart';
 import 'package:abc_learning_app/page/listening/in_a_topic_page.dart';
+import 'package:abc_learning_app/page/reading/read_main_page.dart';
+import 'package:abc_learning_app/page/reading/read_sub_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -83,7 +87,7 @@ class _ListenMainPageState extends State<ListenMainPage> {
                       PopupMenuItem(
                         onTap: () {
                           Navigator.of(context)
-                              .pushNamed(ListenTopicPage.routeName);
+                              .pushNamed(ListenMainPage.routeName);
                         },
                         padding: EdgeInsets.all(5),
                         height: 42,
@@ -112,6 +116,10 @@ class _ListenMainPageState extends State<ListenMainPage> {
                         ),
                       ),
                       PopupMenuItem(
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(ReadMainPage.routeName);
+                        },
                         padding: EdgeInsets.all(5),
                         height: 42,
                         value: 'item2',
@@ -140,6 +148,10 @@ class _ListenMainPageState extends State<ListenMainPage> {
                         ),
                       ),
                       PopupMenuItem(
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(ExerciseMainPage.routeName);
+                        },
                         padding: EdgeInsets.all(5),
                         height: 42,
                         value: 'item3',

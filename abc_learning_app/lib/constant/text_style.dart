@@ -219,6 +219,38 @@ class TextStyles {
     fontWeight: FontWeight.bold,
     fontFamily: AppFonts.lexend,
   );
+
+  //Profile Page
+  static const TextStyle kindUser = TextStyle(
+    fontSize: 12,
+    color: ColorPalette.kindUser,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.lexend,
+  );
+  static const TextStyle labelField = TextStyle(
+    fontSize: 12,
+    color: ColorPalette.kindUser,
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.poppins,
+  );
+  static const TextStyle nameFunction = TextStyle(
+    fontSize: 16,
+    color: ColorPalette.nameFunction,
+    fontWeight: FontWeight.w600,
+    fontFamily: AppFonts.lexend,
+  );
+  static const TextStyle logOutTitle = TextStyle(
+    fontSize: 24,
+    color: Colors.black,
+    fontWeight: FontWeight.bold,
+    fontFamily: AppFonts.poppins,
+  );
+  static const TextStyle logOutContent = TextStyle(
+    fontSize: 16,
+    color: Colors.black,
+    fontWeight: FontWeight.w500,
+    fontFamily: AppFonts.poppins,
+  );
 }
 
 class AppFonts {

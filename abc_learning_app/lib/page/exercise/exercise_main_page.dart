@@ -2,6 +2,8 @@ import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/page/exercise/exercise_sub_page.dart';
+import 'package:abc_learning_app/page/listening/listen_main_page.dart';
+import 'package:abc_learning_app/page/reading/read_main_page.dart';
 import 'package:abc_learning_app/page/reading/read_sub_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -73,7 +75,10 @@ class _ExerciseMainPageState extends State<ExerciseMainPage> {
                     surfaceTintColor: Colors.transparent,
                     itemBuilder: (context) => [
                       PopupMenuItem(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(ListenMainPage.routeName);
+                        },
                         padding: EdgeInsets.all(5),
                         height: 42,
                         value: 'item1',
@@ -101,7 +106,10 @@ class _ExerciseMainPageState extends State<ExerciseMainPage> {
                         ),
                       ),
                       PopupMenuItem(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.of(context)
+                              .pushNamed(ReadMainPage.routeName);
+                        },
                         padding: EdgeInsets.all(5),
                         height: 42,
                         value: 'item2',
@@ -131,8 +139,8 @@ class _ExerciseMainPageState extends State<ExerciseMainPage> {
                       ),
                       PopupMenuItem(
                         onTap: () {
-                          Navigator.pushNamed(
-                              context, ExerciseSubPage.routeName);
+                          Navigator.of(context)
+                              .pushNamed(ExerciseMainPage.routeName);
                         },
                         padding: EdgeInsets.all(5),
                         height: 42,

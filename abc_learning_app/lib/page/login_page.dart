@@ -44,17 +44,17 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       // Navigate to home screen or another relevant screen on successful login
-      Navigator.of(context).pushReplacementNamed('/home');
+      Navigator.of(context).pushNamed(HomePage.routeName);
     } on FirebaseAuthException catch (e) {
       // Handle errors, perhaps show an AlertDialog with the error message
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text('Login Failed'),
+          title: const Text('Login Failed'),
           content: Text(e.message ?? 'Unknown Error'),
           actions: [
             TextButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () => Navigator.of(ctx).pop(),
             ),
           ],
@@ -74,7 +74,7 @@ class _LoginPageState extends State<LoginPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Gap(30),
+            const Gap(30),
             Container(
               alignment: Alignment.center,
               child: Image.asset(
@@ -83,18 +83,18 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
             Container(
-              padding: EdgeInsets.only(left: 16, right: 16, bottom: 16),
+              padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Input Your Email',
                     style: TextStyles.loginTitle,
                   ),
                   const Gap(8),
                   InputFrame(hintText: 'Email', controller: _emailController),
                   const Gap(8),
-                  Text(
+                  const Text(
                     'Input Your Password',
                     style: TextStyles.loginTitle,
                   ),
@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
                             password: password,
                           );
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text('Đăng nhập thành công!'),
                             ),
                           );
@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                           print(e
                               .message); // Consider using a more user-friendly error handling
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
+                            const SnackBar(
                               content: Text(
                                   'Email hoặc mật khẩu không đúng, xin vui lòng nhập lại!'),
                             ),
@@ -139,13 +139,13 @@ class _LoginPageState extends State<LoginPage> {
                       },
                       style: ButtonStyle(
                         padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
-                            EdgeInsets.all(8)),
+                            const EdgeInsets.all(8)),
                         fixedSize: MaterialStateProperty.all<Size>(
                             Size(size.width / 2, 55)),
                         backgroundColor: MaterialStateProperty.all<Color>(
                             ColorPalette.primaryColor),
                         side: MaterialStateProperty.all<BorderSide>(
-                            BorderSide(color: Colors.white, width: 1)),
+                            const BorderSide(color: Colors.white, width: 1)),
                         shape:
                             MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
@@ -153,19 +153,19 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                       ),
-                      child: Text('Login', style: TextStyles.loginButtonText),
+                      child: const Text('Login',
+                          style: TextStyles.loginButtonText),
                     ),
                   ),
-                  Gap(18),
+                  const Gap(18),
                   GestureDetector(
                     onTap: () {
                       showModalBottomSheet(
                         context: context,
                         builder: (BuildContext context) {
-                          return GoogleLoginDialog(); // Hiển thị bottom sheet tài khoản Google
+                          return const GoogleLoginDialog(); // Hiển thị bottom sheet tài khoản Google
                         },
-                        isScrollControlled:
-                            true, // Đảm bảo bottom sheet chiếm nửa màn hình
+                        isScrollControlled: true,
                       );
                     },
                     child: Row(
@@ -178,7 +178,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ),
                         const Gap(12),
-                        Icon(
+                        const Icon(
                           FontAwesomeIcons.google,
                           size: 16,
                         )
@@ -208,7 +208,7 @@ class _LoginPageState extends State<LoginPage> {
                       Text(
                         'Doesn\'t have an account? ',
                         style: TextStyles.MediumTextRegular.copyWith(
-                          color: Color(0xff3C3C43).withOpacity(0.6),
+                          color: const Color(0xff3C3C43).withOpacity(0.6),
                         ),
                       ),
                       const Gap(7),
