@@ -35,4 +35,8 @@ class ColorPalette {
   //Exercise Page
   static const Color exerciseButton = Color(0xffEF3349);
   static const Color exerciseButtonInActive = Color(0xffF3F3F3);
+
+  //Profile Page
+  static const Color kindUser = Color(0xff898989);
+  static const Color nameFunction = Color(0xff1f1f1f);
 }
