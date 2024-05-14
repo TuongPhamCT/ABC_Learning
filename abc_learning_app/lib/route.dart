@@ -1,4 +1,5 @@
 import 'package:abc_learning_app/model/reading_data_model.dart';
+import 'package:abc_learning_app/model/reading_progress_model.dart';
 import 'package:abc_learning_app/page/achievement_page.dart';
 import 'package:abc_learning_app/page/age_profile_page.dart';
 import 'package:abc_learning_app/page/email_profile_page.dart';
@@ -47,8 +48,15 @@ final Map<String, WidgetBuilder> routes = {
       ),
   ReadMainPage.routeName: (context) => const ReadMainPage(),
   ReadSubPage.routeName: (context) => ReadSubPage(
-    readingTopic : ReadingTopic(topic: "topic", img_url: "img_url", maxQuestions: 1, unitId: "unitId")
-  ),
+        readingTopic: ReadingTopic(
+          topic: "topic",
+          img_url: "img_url",
+          maxQuestions: 1,
+          unitId: "unitId",
+        ),
+        readingProgressCollection:
+            ReadingProgressCollection(unitId: "unitId", currentProgress: 0),
+      ),
   ExerciseMainPage.routeName: (context) => const ExerciseMainPage(),
   ExerciseSubPage.routeName: (context) => const ExerciseSubPage(),
 };

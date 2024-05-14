@@ -2,7 +2,9 @@ import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/model/reading_data_model.dart';
+import 'package:abc_learning_app/model/reading_progress_model.dart';
 import 'package:abc_learning_app/page/reading/read_sub_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
@@ -16,7 +18,10 @@ class ReadMainPage extends StatefulWidget {
 }
 
 class _ReadMainPageState extends State<ReadMainPage> {
-  static final ReadingTopicRepo _readingTopicRepo = ReadingTopicRepo();
+  final ReadingTopicRepo _readingTopicRepo = ReadingTopicRepo();
+  final ReadingProgressRepo _readingProgressRepo = ReadingProgressRepo();
+  ReadingProgress? _readingProgress;
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -190,15 +195,42 @@ class _ReadMainPageState extends State<ReadMainPage> {
                       ),
                     ),
                     const Gap(20),
-                    Expanded(
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        itemCount: readingTopic.length,
-                        itemBuilder: (context, index) {
-                          return buildListenItem(readingTopic[index]);
-                        },
-                      ),
-                    ),
+                    FutureBuilder(
+                        future: Future.wait([
+                          _readingProgressRepo.getReadingProgressById(
+                              FirebaseAuth.instance.currentUser!.uid)
+                        ]),
+                        builder:
+                            (BuildContext context, AsyncSnapshot snapshot) {
+                          if (snapshot.hasData) {
+                            _readingProgress = snapshot.data[0];
+                            return Expanded(
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: readingTopic.length,
+                                itemBuilder: (context, index) {
+                                  String currentUnit =
+                                      readingTopic[index].unitId;
+                                  int currentProgress = _readingProgress!
+                                      .progresses
+                                      .singleWhere(
+                                          (progress) =>
+                                              progress.unitId == currentUnit,
+                                          orElse: () =>
+                                              ReadingProgressCollection(
+                                                  unitId: '0',
+                                                  currentProgress: 0))
+                                      .currentProgress;
+                                  return buildListenItem(
+                                      readingTopic[index], currentProgress);
+                                },
+                              ),
+                            );
+                          } else {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                        }),
                     const Gap(15),
                   ],
                 );
@@ -210,15 +242,25 @@ class _ReadMainPageState extends State<ReadMainPage> {
     );
   }
 
-  Widget buildListenItem(ReadingTopic topic) {
+  Widget buildListenItem(ReadingTopic topic, int correctTasks) {
     Size size = MediaQuery.of(context).size;
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => ReadSubPage(readingTopic: topic),
-          ),
-        );
+        String currentUnit = topic.unitId;
+        ReadingProgressCollection progress = _readingProgress!.progresses
+            .singleWhere((progress) => progress.unitId == currentUnit,
+                orElse: () =>
+                    ReadingProgressCollection(unitId: '0', currentProgress: 0));
+        Navigator.of(context)
+            .push(
+              MaterialPageRoute(
+                builder: (context) => ReadSubPage(
+                  readingTopic: topic,
+                  readingProgressCollection: progress,
+                ),
+              ),
+            )
+            .then((res) => setState(() {}));
       },
       child: Container(
         decoration: BoxDecoration(
@@ -256,7 +298,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(15),
                         child: LinearProgressIndicator(
-                          value: 0 / topic.maxQuestions,
+                          value: correctTasks / topic.maxQuestions,
                           backgroundColor: ColorPalette.progressbarbackground,
                           valueColor: const AlwaysStoppedAnimation<Color>(
                               ColorPalette.progressbarValue),
@@ -265,7 +307,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                     ),
                     const Gap(8),
                     Text(
-                      "0 / ${topic.maxQuestions}",
+                      "$correctTasks / ${topic.maxQuestions}",
                       style: TextStyles.itemprogress,
                     ),
                   ],

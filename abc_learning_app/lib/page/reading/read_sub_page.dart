@@ -1,15 +1,25 @@
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/model/question.dart';
 import 'package:abc_learning_app/model/reading_data_model.dart';
+import 'package:abc_learning_app/model/reading_progress_model.dart';
+import 'package:abc_learning_app/page/reading/read_main_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
+
+enum QuestionState { wrong, correct, uncompleted }
 
 class ReadSubPage extends StatefulWidget {
   final ReadingTopic readingTopic;
-  const ReadSubPage({super.key, required this.readingTopic});
+  final ReadingProgressCollection readingProgressCollection;
+  const ReadSubPage(
+      {super.key,
+      required this.readingTopic,
+      required this.readingProgressCollection});
   static const String routeName = 'read_sub';
 
   @override
@@ -20,14 +30,24 @@ class _ReadSubPageState extends State<ReadSubPage> {
   int cauHoi = 1;
   final PageController _pageController = PageController();
   TextEditingController textController = TextEditingController();
+  final ReadingProgressRepo _readingProgressRepo = ReadingProgressRepo();
+
+  bool finished = false;
 
   bool checkAnswer = false;
-  String answer = 'A';
   String selectedAnswer = '';
-  String trueAnswer = 'Elephant';
+  List<QuestionState> questionsAnswer = [];
 
   Future<DocumentSnapshot> _fetchUnitDocument(String unitsId) async {
     return FirebaseFirestore.instance.collection('units').doc(unitsId).get();
+  }
+
+  @override
+  void initState() {
+    for (int i = 0; i < widget.readingTopic.maxQuestions; i++) {
+      questionsAnswer.add(QuestionState.uncompleted);
+    }
+    super.initState();
   }
 
   @override
@@ -45,6 +65,18 @@ class _ReadSubPageState extends State<ReadSubPage> {
               children: [
                 GestureDetector(
                   onTap: () {
+                    int correctResults = 0;
+                    for (var result in questionsAnswer) {
+                      if (result == QuestionState.correct) {
+                        correctResults++;
+                      }
+                    }
+                    ReadingProgressCollection progress =
+                        ReadingProgressCollection(
+                            id: widget.readingProgressCollection.id,
+                            currentProgress: correctResults,
+                            unitId: widget.readingTopic.unitId);
+                    _readingProgressRepo.uploadProgressCollection(progress);
                     Navigator.pop(context);
                   },
                   child: Container(
@@ -75,7 +107,7 @@ class _ReadSubPageState extends State<ReadSubPage> {
                     physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     scrollDirection: Axis.horizontal,
-                    itemCount: 6,
+                    itemCount: widget.readingTopic.maxQuestions,
                     itemBuilder: (context, index) {
                       return Container(
                         height: 8,
@@ -312,6 +344,7 @@ class _ReadSubPageState extends State<ReadSubPage> {
               curve: Curves.easeInOut,
             );
             setState(() {
+              questionsAnswer[cauHoi - 1] = QuestionState.correct;
               cauHoi++;
             });
           },
@@ -485,149 +518,184 @@ class _ReadSubPageState extends State<ReadSubPage> {
                 ),
               ],
             ),
-            if (checkAnswer)
-              if (selectedAnswer == answer)
-                Container(
-                  height: size.height * 0.23,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'That\'s right',
-                        style: TextStyles.questionResult,
-                      ),
-                      const Gap(5),
-                      const Text(
-                        'Answer:',
-                        style: TextStyles.questionLabel,
-                      ),
-                      const Gap(10),
-                      Container(
-                        alignment: Alignment.center,
-                        child: Text(
-                          question.answer,
-                          style: TextStyles.trueAnswer,
+            if (!finished)
+              if (checkAnswer)
+                if (selectedAnswer == question.answer)
+                  Container(
+                    height: size.height * 0.23,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'That\'s right',
+                          style: TextStyles.questionResult,
                         ),
-                      ),
-                      Expanded(child: Container()),
-                      Container(
-                        alignment: Alignment.center,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                            setState(() {
-                              cauHoi++;
-                              checkAnswer = false;
-                            });
-                          },
-                          style: ButtonStyle(
-                            padding:
-                                WidgetStateProperty.all<EdgeInsetsGeometry>(
-                                    const EdgeInsets.all(8)),
-                            fixedSize: WidgetStateProperty.all<Size>(
-                                Size(size.width * 0.75, 55)),
-                            backgroundColor:
-                                WidgetStateProperty.all<Color>(Colors.green),
-                            shape:
-                                WidgetStateProperty.all<RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(40),
+                        const Gap(5),
+                        const Text(
+                          'Answer:',
+                          style: TextStyles.questionLabel,
+                        ),
+                        const Gap(10),
+                        Container(
+                          alignment: Alignment.center,
+                          child: Text(
+                            question.answer,
+                            style: TextStyles.trueAnswer,
+                          ),
+                        ),
+                        Expanded(child: Container()),
+                        Container(
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              questionsAnswer[cauHoi - 1] =
+                                  QuestionState.correct;
+                              _pageController.nextPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                              setState(() {
+                                cauHoi++;
+                                checkAnswer = false;
+                                selectedAnswer = '';
+                              });
+                            },
+                            style: ButtonStyle(
+                              padding:
+                                  WidgetStateProperty.all<EdgeInsetsGeometry>(
+                                      const EdgeInsets.all(8)),
+                              fixedSize: WidgetStateProperty.all<Size>(
+                                  Size(size.width * 0.75, 55)),
+                              backgroundColor:
+                                  WidgetStateProperty.all<Color>(Colors.green),
+                              shape: WidgetStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(40),
+                                ),
                               ),
                             ),
+                            child: const Text('Next Question',
+                                style: TextStyles.loginButtonText),
                           ),
-                          child: const Text('Next Question',
-                              style: TextStyles.loginButtonText),
                         ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Container(
-                  height: size.height * 0.23,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Oops.. That\'s not quite right',
-                        style: TextStyles.questionResult.copyWith(
-                          color: Colors.red,
-                        ),
-                      ),
-                      const Gap(5),
-                      Text(
-                        'Answer:',
-                        style: TextStyles.questionLabel.copyWith(
-                          color: Colors.red,
-                        ),
-                      ),
-                      const Gap(10),
-                      Container(
-                        alignment: Alignment.center,
-                        child: Text(
-                          question.answer,
-                          style: TextStyles.trueAnswer.copyWith(
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    height: size.height * 0.23,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Oops.. That\'s not quite right',
+                          style: TextStyles.questionResult.copyWith(
                             color: Colors.red,
                           ),
                         ),
-                      ),
-                      Expanded(child: Container()),
-                      Container(
-                        alignment: Alignment.center,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                            );
-                            setState(() {
-                              cauHoi++;
-                              checkAnswer = false;
-                            });
-                          },
-                          style: ButtonStyle(
-                            padding:
-                                WidgetStateProperty.all<EdgeInsetsGeometry>(
-                                    const EdgeInsets.all(8)),
-                            fixedSize: WidgetStateProperty.all<Size>(
-                                Size(size.width * 0.75, 55)),
-                            backgroundColor:
-                                WidgetStateProperty.all<Color>(Colors.red),
-                            shape:
-                                WidgetStateProperty.all<RoundedRectangleBorder>(
-                              RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(40),
-                              ),
+                        const Gap(5),
+                        Text(
+                          'Answer:',
+                          style: TextStyles.questionLabel.copyWith(
+                            color: Colors.red,
+                          ),
+                        ),
+                        const Gap(10),
+                        Container(
+                          alignment: Alignment.center,
+                          child: Text(
+                            question.answer,
+                            style: TextStyles.trueAnswer.copyWith(
+                              color: Colors.red,
                             ),
                           ),
-                          child: const Text('Next Question',
-                              style: TextStyles.loginButtonText),
                         ),
+                        Expanded(child: Container()),
+                        Container(
+                          alignment: Alignment.center,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              questionsAnswer[cauHoi - 1] = QuestionState.wrong;
+                              _pageController.nextPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeInOut,
+                              );
+                              setState(() {
+                                cauHoi++;
+                                checkAnswer = false;
+                                selectedAnswer = '';
+                              });
+                            },
+                            style: ButtonStyle(
+                              padding:
+                                  WidgetStateProperty.all<EdgeInsetsGeometry>(
+                                      const EdgeInsets.all(8)),
+                              fixedSize: WidgetStateProperty.all<Size>(
+                                  Size(size.width * 0.75, 55)),
+                              backgroundColor:
+                                  WidgetStateProperty.all<Color>(Colors.red),
+                              shape: WidgetStateProperty.all<
+                                  RoundedRectangleBorder>(
+                                RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(40),
+                                ),
+                              ),
+                            ),
+                            child: const Text('Next Question',
+                                style: TextStyles.loginButtonText),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+              else
+                ElevatedButton(
+                  onPressed: () {
+                    if (selectedAnswer.isEmpty) {
+                      return;
+                    }
+                    setState(() {
+                      checkAnswer = true;
+                    });
+                  },
+                  style: ButtonStyle(
+                    padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+                        const EdgeInsets.all(8)),
+                    fixedSize: WidgetStateProperty.all<Size>(
+                        Size(size.width * 0.75, 55)),
+                    backgroundColor: WidgetStateProperty.all<Color>(
+                        ColorPalette.primaryColor),
+                    side: WidgetStateProperty.all<BorderSide>(
+                        const BorderSide(color: Colors.white, width: 1)),
+                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(40),
                       ),
-                    ],
+                    ),
                   ),
+                  child: const Text('Check Answer',
+                      style: TextStyles.loginButtonText),
                 )
             else
               ElevatedButton(
                 onPressed: () {
-                  setState(() {
-                    checkAnswer = true;
-                  });
+                  _pageController.animateToPage(
+                      widget.readingTopic.maxQuestions,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut);
                 },
                 style: ButtonStyle(
                   padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
@@ -644,9 +712,8 @@ class _ReadSubPageState extends State<ReadSubPage> {
                     ),
                   ),
                 ),
-                child: const Text('Check Answer',
-                    style: TextStyles.loginButtonText),
-              ),
+                child: const Text('Finish', style: TextStyles.loginButtonText),
+              )
           ],
         ),
       ),
@@ -655,6 +722,12 @@ class _ReadSubPageState extends State<ReadSubPage> {
 
   Widget buildReview() {
     Size size = MediaQuery.of(context).size;
+    int correctResults = 0;
+    for (var result in questionsAnswer) {
+      if (result == QuestionState.correct) {
+        correctResults++;
+      }
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -675,8 +748,8 @@ class _ReadSubPageState extends State<ReadSubPage> {
           margin: const EdgeInsets.only(bottom: 20),
           child: Row(
             children: [
-              Image.asset(
-                AssetHelper.itemListen,
+              Image.network(
+                widget.readingTopic.img_url,
                 width: 60,
                 height: 60,
                 fit: BoxFit.cover,
@@ -685,8 +758,8 @@ class _ReadSubPageState extends State<ReadSubPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Alphabet',
+                  Text(
+                    widget.readingTopic.topic,
                     style: TextStyles.itemTitle,
                   ),
                   const Gap(12),
@@ -698,17 +771,18 @@ class _ReadSubPageState extends State<ReadSubPage> {
                         height: 10,
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(15),
-                          child: const LinearProgressIndicator(
-                            value: 9 / 50,
+                          child: LinearProgressIndicator(
+                            value: correctResults /
+                                widget.readingTopic.maxQuestions,
                             backgroundColor: ColorPalette.progressbarbackground,
-                            valueColor: AlwaysStoppedAnimation<Color>(
+                            valueColor: const AlwaysStoppedAnimation<Color>(
                                 ColorPalette.progressbarValue),
                           ),
                         ),
                       ),
                       const Gap(8),
-                      const Text(
-                        '9/50',
+                      Text(
+                        '$correctResults/${widget.readingTopic.maxQuestions}',
                         style: TextStyles.itemprogress,
                       ),
                     ],
@@ -728,16 +802,18 @@ class _ReadSubPageState extends State<ReadSubPage> {
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
             ),
-            itemCount: 50, // Thay đổi số lượng item tùy theo nhu cầu của bạn
+            itemCount: widget.readingTopic
+                .maxQuestions, // Thay đổi số lượng item tùy theo nhu cầu của bạn
             itemBuilder: (BuildContext context, int index) {
               Color getItemColor(int index) {
-                if (index % 3 == 0) {
-                  return Colors.green;
-                } else if (index % 3 == 1) {
-                  return Colors.red;
-                } else {
+                if (questionsAnswer[index] == QuestionState.uncompleted) {
                   return Colors.grey;
+                } else if (questionsAnswer[index] == QuestionState.correct) {
+                  return Colors.green;
+                } else if (questionsAnswer[index] == QuestionState.wrong) {
+                  return Colors.red;
                 }
+                return Colors.grey;
               }
 
               return Container(
@@ -752,7 +828,15 @@ class _ReadSubPageState extends State<ReadSubPage> {
                   ],
                 ),
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    setState(() {
+                      cauHoi = index + 1;
+                    });
+                    finished = true;
+                    _pageController.animateToPage(index,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeInOut);
+                  },
                   style: ButtonStyle(
                     padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
                         const EdgeInsets.all(8)),
@@ -776,6 +860,11 @@ class _ReadSubPageState extends State<ReadSubPage> {
         Expanded(child: Container()),
         ElevatedButton(
           onPressed: () {
+            ReadingProgressCollection progress = ReadingProgressCollection(
+                id: widget.readingProgressCollection.id,
+                currentProgress: correctResults,
+                unitId: widget.readingTopic.unitId);
+            _readingProgressRepo.uploadProgressCollection(progress);
             Navigator.pop(context);
           },
           style: ButtonStyle(
