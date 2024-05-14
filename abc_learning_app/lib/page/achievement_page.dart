@@ -1,7 +1,7 @@
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/model/achievement_model.dart';
-import 'package:abc_learning_app/model/progress_model.dart';
+import 'package:abc_learning_app/model/achievement_progress_model.dart';
 import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/profile/profile_main_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';

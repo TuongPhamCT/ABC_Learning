@@ -1,17 +1,13 @@
 import 'package:abc_learning_app/component/dependency_injection.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/firebase_options.dart';
-import 'package:abc_learning_app/helper/local_storage_helper.dart';
 import 'package:abc_learning_app/page/home_page.dart';
-import 'package:abc_learning_app/page/listening/in_a_topic_page.dart';
-import 'package:abc_learning_app/page/splash_page.dart';
 import 'package:abc_learning_app/page/starter_page.dart';
 import 'package:abc_learning_app/route.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:hive_flutter/adapters.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,7 +39,7 @@ class _MyAppState extends State<MyApp> {
         primaryColor: ColorPalette.primaryColor,
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: AuthenticationWrapper(),
+      home: const AuthenticationWrapper(),
       routes: routes,
       debugShowCheckedModeBanner: false,
     );
@@ -51,6 +47,8 @@ class _MyAppState extends State<MyApp> {
 }
 
 class AuthenticationWrapper extends StatefulWidget {
+  const AuthenticationWrapper({super.key});
+
   @override
   _AuthenticationWrapperState createState() => _AuthenticationWrapperState();
 }
@@ -62,7 +60,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
   void initState() {
     super.initState();
     // Wait for 5 seconds and then hide the splash screen
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () {
       setState(() {
         _showSplash = false;
       });
@@ -72,7 +70,7 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
   @override
   Widget build(BuildContext context) {
     // return _showSplash ? SplashPage() : StarterPage();
-    return FirebaseAuth.instance.currentUser == null ? StarterPage() : HomePage();
+    return FirebaseAuth.instance.currentUser == null ? const StarterPage() : const HomePage();
     // : StreamBuilder<User?>(
     //     stream: FirebaseAuth.instance.authStateChanges(),
     //     builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
