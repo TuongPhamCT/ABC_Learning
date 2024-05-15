@@ -16,7 +16,7 @@ class ReadingProgressCollection {
   factory ReadingProgressCollection.fromFirestore(DocumentSnapshot doc) {
     Map data = doc.data() as Map<String, dynamic>;
     return ReadingProgressCollection(
-      id : doc.id,
+        id: doc.id,
         unitId: data['unitId'],
         currentProgress: int.parse(data['currentProgress']));
   }
@@ -33,10 +33,14 @@ class ReadingProgress {
   List<ReadingProgressCollection> progresses;
   String userId;
 
-  ReadingProgress({required this.progresses, required this.userId});
+  ReadingProgress({required this.progresses, this.userId = ''});
 
   Map<String, dynamic> toJson() {
-    return {'progresses': progresses};
+    List<Map<String, dynamic>> progressesToBeAdded = [];
+    for (var progress in progresses) {
+      progressesToBeAdded.add(progress.toJson());
+    }
+    return {'progresses': progressesToBeAdded};
   }
 
   static Future<ReadingProgress> fromFirestore(DocumentSnapshot doc) async {
@@ -83,12 +87,20 @@ class ReadingProgressRepo {
 
   Future<void> uploadProgressCollection(
       ReadingProgressCollection progress) async {
+    if (progress.id.isEmpty) {
+      await FirebaseFirestore.instance
+          .collection(ReadingProgress.documentId)
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .collection('progresses')
+          .add(progress.toJson())
+          .then((docRef) => progress.id = docRef.id);
+    }
     FirebaseFirestore.instance
         .collection(ReadingProgress.documentId)
         .doc(FirebaseAuth.instance.currentUser?.uid)
         .collection('progresses')
         .doc(progress.id)
-        .update(progress.toJson())
-        .onError((e, _) => throw Exception('Upload ReadingProgress Failed'));
+        .set(progress.toJson())
+        .onError((e, _) => throw Exception("Upload Reading Process Failed"));
   }
 }
