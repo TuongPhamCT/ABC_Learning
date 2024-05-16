@@ -8,20 +8,23 @@ class Achievement {
   String description;
   String icon;
   int maxIndex;
+  String type;
 
   Achievement(
       {this.id = '',
       required this.name,
       required this.description,
       required this.icon,
-      required this.maxIndex});
+      required this.maxIndex,
+      required this.type});
 
   Map<String, dynamic> toJson() {
     return {
       'name': name,
       'description': description,
       'icon': icon,
-      'maxIndex': maxIndex.toString()
+      'maxIndex': maxIndex.toString(),
+      'type': type
     };
   }
 
@@ -32,7 +35,8 @@ class Achievement {
         name: data['name'],
         description: data['description'],
         icon: data['icon'],
-        maxIndex: int.parse(data['maxIndex']));
+        maxIndex: int.parse(data['maxIndex']),
+        type: data['type']);
   }
 
   @override

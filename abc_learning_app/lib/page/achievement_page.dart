@@ -2,6 +2,8 @@ import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/model/achievement_model.dart';
 import 'package:abc_learning_app/model/achievement_progress_model.dart';
+import 'package:abc_learning_app/model/reading_data_model.dart';
+import 'package:abc_learning_app/model/reading_progress_model.dart';
 import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/profile/profile_main_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -22,9 +24,13 @@ class _AchievementPageState extends State<AchievementPage> {
   static final AchievementRepo _achievementRepo = AchievementRepo();
   static final AchievementProgressRepo _achievementProgressRepo =
       AchievementProgressRepo();
+  final ReadingTopicRepo _readingTopicRepo = ReadingTopicRepo();
+  final ReadingProgressRepo _readingProgressRepo = ReadingProgressRepo();
 
   int _totalAchievement = 0;
   int _completePercent = 0;
+  int completedAchievements = 0;
+  Map<String, int> progressPerAchievement ={};
 
   int _selectedIndex = 1;
   double rating = 3;
@@ -44,26 +50,40 @@ class _AchievementPageState extends State<AchievementPage> {
         child: FutureBuilder(
             future: Future.wait([
               _achievementRepo.getAllAchievements(),
-              _achievementProgressRepo.getAchievementProgressById(
+              _readingTopicRepo.getAllTopic(),
+              _readingProgressRepo.getReadingProgressById(
                   FirebaseAuth.instance.currentUser!.uid)
             ]),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.hasData) {
                 List<Achievement> achievements = snapshot.data[0];
-                AchievementProgress achievementProgress = snapshot.data[1];
-                _totalAchievement = achievements.length;
-                int completedAchievements = 0;
-                for (Achievement achievement in achievements) {
-                  Progress currentProgress = achievementProgress.progresses
-                      .singleWhere(
-                          (progress) =>
-                              progress.achievementId == achievement.id,
-                          orElse: () =>
-                              Progress(achievementId: '0', currentProgress: 0));
-                  if (currentProgress.currentProgress >= achievement.maxIndex) {
-                    completedAchievements++;
+                List<ReadingTopic> readingTopics = snapshot.data[1];
+                ReadingProgress readingProgress = snapshot.data[2];
+                for (int i = 0; i < achievements.length; i++) {
+                  Achievement currentAchievement = achievements[i];
+                  int currentProgress = 0;
+                  if (currentAchievement.type == 'reading') {
+                    for (ReadingTopic readingTopic in readingTopics) {
+                      ReadingProgressCollection progress =
+                          readingProgress.progresses.singleWhere(
+                              (progress) =>
+                                  progress.unitId == readingTopic.unitId,
+                              orElse: () => ReadingProgressCollection(
+                                  unitId: '0', currentProgress: 0));
+                      if (progress.currentProgress >=
+                          readingTopic.maxQuestions) {
+                        currentProgress++;
+                      }
+                    }
+                    progressPerAchievement
+                        .addEntries({currentAchievement.id: currentProgress}.entries);
+                    if (currentProgress >= currentAchievement.maxIndex) {
+                      completedAchievements++;
+                      print(completedAchievements);
+                    }
                   }
                 }
+                _totalAchievement = achievements.length;
                 _completePercent =
                     (completedAchievements / _totalAchievement * 100).round();
                 return Column(
@@ -167,17 +187,8 @@ class _AchievementPageState extends State<AchievementPage> {
                         itemCount: achievements.length,
                         itemBuilder: (context, index) {
                           Color color = colors[index % 4];
-                          String currentAchievement = achievements[index].id;
-                          int currentProgress = achievementProgress.progresses
-                              .singleWhere(
-                                  (progress) =>
-                                      progress.achievementId ==
-                                      currentAchievement,
-                                  orElse: () => Progress(
-                                      achievementId: '0', currentProgress: 0))
-                              .currentProgress;
                           return buildAchievementItem(index, color,
-                              achievements[index], currentProgress);
+                              achievements[index], progressPerAchievement[achievements[index].id]??0);
                         },
                       ),
                     )

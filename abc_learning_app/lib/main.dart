@@ -70,7 +70,9 @@ class _AuthenticationWrapperState extends State<AuthenticationWrapper> {
   @override
   Widget build(BuildContext context) {
     // return _showSplash ? SplashPage() : StarterPage();
-    return FirebaseAuth.instance.currentUser == null ? const StarterPage() : const HomePage();
+    return FirebaseAuth.instance.currentUser == null
+        ? const StarterPage()
+        : const HomePage();
     // : StreamBuilder<User?>(
     //     stream: FirebaseAuth.instance.authStateChanges(),
     //     builder: (BuildContext context, AsyncSnapshot<User?> snapshot) {
