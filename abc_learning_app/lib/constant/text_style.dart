@@ -251,6 +251,15 @@ class TextStyles {
     fontWeight: FontWeight.w500,
     fontFamily: AppFonts.poppins,
   );
+
+  //Privacy Page
+  static const TextStyle privacyContent = TextStyle(
+    fontSize: 16,
+    color: Color(0xff707070),
+    fontWeight: FontWeight.normal,
+    fontFamily: AppFonts.lexend,
+    letterSpacing: 0.2,
+  );
 }
 
 class AppFonts {
