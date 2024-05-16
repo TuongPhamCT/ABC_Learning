@@ -76,7 +76,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.15),
                                 blurRadius: 20,
-                                offset: Offset(0, 8),
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
@@ -89,7 +89,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                   Navigator.of(context)
                                       .pushNamed(ListenMainPage.routeName);
                                 },
-                                padding: EdgeInsets.all(5),
+                                padding: const EdgeInsets.all(5),
                                 height: 42,
                                 value: 'item1',
                                 child: Container(
@@ -103,7 +103,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.15),
                                         blurRadius: 20,
-                                        offset: Offset(0, 8),
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
                                   ),
@@ -120,7 +120,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                   Navigator.of(context)
                                       .pushNamed(ReadMainPage.routeName);
                                 },
-                                padding: EdgeInsets.all(5),
+                                padding: const EdgeInsets.all(5),
                                 height: 42,
                                 value: 'item2',
                                 child: Container(
@@ -134,7 +134,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.15),
                                         blurRadius: 20,
-                                        offset: Offset(0, 8),
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
                                   ),
@@ -152,7 +152,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                   Navigator.of(context)
                                       .pushNamed(ExerciseMainPage.routeName);
                                 },
-                                padding: EdgeInsets.all(5),
+                                padding: const EdgeInsets.all(5),
                                 height: 42,
                                 value: 'item3',
                                 child: Container(
@@ -166,7 +166,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.15),
                                         blurRadius: 20,
-                                        offset: Offset(0, 8),
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
                                   ),
@@ -180,7 +180,7 @@ class _ReadMainPageState extends State<ReadMainPage> {
                                 ),
                               ),
                             ],
-                            child: Icon(
+                            child: const Icon(
                               Icons.menu,
                               color: Colors.black,
                             ),

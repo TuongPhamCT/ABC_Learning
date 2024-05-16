@@ -1,15 +1,18 @@
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
-import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:abc_learning_app/model/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
+import 'package:intl/intl.dart';
 
 class PrivacyPage extends StatefulWidget {
-  const PrivacyPage({super.key});
+  MyUser user;
+  int completedAchievements;
+  PrivacyPage(
+      {super.key, required this.user, required this.completedAchievements});
   static const routeName = 'privacy_page';
 
   @override
@@ -23,7 +26,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
+          SizedBox(
             height: size.height,
             width: size.width,
             child: CustomPaint(
@@ -31,7 +34,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
             ),
           ),
           Container(
-            padding: EdgeInsets.all(25),
+            padding: const EdgeInsets.all(25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
@@ -42,7 +45,7 @@ class _PrivacyPageState extends State<PrivacyPage> {
                       child: Container(
                           alignment: Alignment.center,
                           height: 42,
-                          child: Text('Privacy',
+                          child: const Text('Privacy',
                               style: TextStyles.loginButtonText)),
                     ),
                     GestureDetector(
@@ -59,11 +62,11 @@ class _PrivacyPageState extends State<PrivacyPage> {
                             BoxShadow(
                               color: Colors.black.withOpacity(0.15),
                               blurRadius: 20,
-                              offset: Offset(0, 8),
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
-                        child: Icon(
+                        child: const Icon(
                           FontAwesomeIcons.angleLeft,
                           color: Colors.black,
                         ),
@@ -77,20 +80,26 @@ class _PrivacyPageState extends State<PrivacyPage> {
                   width: 90,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(45),
-                    image: DecorationImage(
+                    image: const DecorationImage(
                       image: AssetImage(AssetHelper.storyilu),
                       fit: BoxFit.cover,
                     ),
                   ),
                 ),
                 const Gap(10),
-                Text('John Doe', style: TextStyles.titleComponent),
+                Text(widget.user.name, style: TextStyles.titleComponent),
                 const Gap(5),
-                Text('Newbie', style: TextStyles.kindUser),
+                Text(
+                    widget.completedAchievements < 5
+                        ? 'Foundation'
+                        : widget.completedAchievements < 10
+                            ? 'Beginner'
+                            : 'Intermediate',
+                    style: TextStyles.kindUser),
                 const Gap(20),
                 Container(
                   alignment: Alignment.centerLeft,
-                  child: Text(
+                  child: const Text(
                     'Name',
                     style: TextStyles.nameFunction,
                   ),
@@ -100,20 +109,21 @@ class _PrivacyPageState extends State<PrivacyPage> {
                   alignment: Alignment.centerLeft,
                   height: 60,
                   width: size.width,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
                     border: Border.all(color: ColorPalette.itemBackground),
                   ),
                   child: Text(
-                    'John Doe',
+                    widget.user.name,
                     style: TextStyles.privacyContent,
                   ),
                 ),
                 const Gap(10),
                 Container(
                   alignment: Alignment.centerLeft,
-                  child: Text(
+                  child: const Text(
                     'User Name',
                     style: TextStyles.nameFunction,
                   ),
@@ -123,20 +133,21 @@ class _PrivacyPageState extends State<PrivacyPage> {
                   alignment: Alignment.centerLeft,
                   height: 60,
                   width: size.width,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
                     border: Border.all(color: ColorPalette.itemBackground),
                   ),
                   child: Text(
-                    'JohnDOE',
+                    widget.user.name,
                     style: TextStyles.privacyContent,
                   ),
                 ),
                 const Gap(10),
                 Container(
                   alignment: Alignment.centerLeft,
-                  child: Text(
+                  child: const Text(
                     'Email',
                     style: TextStyles.nameFunction,
                   ),
@@ -146,13 +157,14 @@ class _PrivacyPageState extends State<PrivacyPage> {
                   alignment: Alignment.centerLeft,
                   height: 60,
                   width: size.width,
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(40),
                     border: Border.all(color: ColorPalette.itemBackground),
                   ),
                   child: Text(
-                    'John.doe@gmail.com',
+                    widget.user.email,
                     style: TextStyles.privacyContent,
                   ),
                 ),
@@ -162,16 +174,20 @@ class _PrivacyPageState extends State<PrivacyPage> {
                   children: [
                     Column(
                       children: [
-                        Text('Age', style: TextStyles.nameFunction),
+                        const Text('Age', style: TextStyles.nameFunction),
                         const Gap(5),
-                        Text('21', style: TextStyles.privacyContent),
+                        Text(widget.user.age, style: TextStyles.privacyContent),
                       ],
                     ),
                     Column(
                       children: [
-                        Text('Joined From', style: TextStyles.nameFunction),
+                        const Text('Joined From',
+                            style: TextStyles.nameFunction),
                         const Gap(5),
-                        Text('5, Jan 2024', style: TextStyles.privacyContent),
+                        Text(
+                            DateFormat('MMMM dd, yyyy').format(FirebaseAuth
+                                .instance.currentUser!.metadata.creationTime!),
+                            style: TextStyles.privacyContent),
                       ],
                     ),
                   ],

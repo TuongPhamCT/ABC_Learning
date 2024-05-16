@@ -1,20 +1,20 @@
-import 'package:abc_learning_app/component/google_login_dialog.dart';
 import 'package:abc_learning_app/component/log_out_dialog.dart';
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/model/achievement_model.dart';
+import 'package:abc_learning_app/model/reading_data_model.dart';
+import 'package:abc_learning_app/model/reading_progress_model.dart';
+import 'package:abc_learning_app/model/user_model.dart';
 import 'package:abc_learning_app/page/achievement_page.dart';
-import 'package:abc_learning_app/page/age_profile_page.dart';
 import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
 import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/listening/listen_main_page.dart';
 import 'package:abc_learning_app/page/profile/privacy_page.dart';
 import 'package:abc_learning_app/page/profile/setting_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
-import 'package:abc_learning_app/page/register_page.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
@@ -27,6 +27,10 @@ class ProfileMainPage extends StatefulWidget {
 }
 
 class _ProfileMainPageState extends State<ProfileMainPage> {
+  final UserRepo _userRepo = UserRepo();
+  final ReadingTopicRepo _readingTopicRepo = ReadingTopicRepo();
+  final ReadingProgressRepo _readingProgressRepo = ReadingProgressRepo();
+  final AchievementRepo _achievementRepo = AchievementRepo();
   int _selectedIndex = 2;
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
     return Scaffold(
       body: Stack(
         children: [
-          Container(
+          SizedBox(
             height: size.height,
             width: size.width,
             child: CustomPaint(
@@ -42,7 +46,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
             ),
           ),
           Container(
-            padding: EdgeInsets.all(25),
+            padding: const EdgeInsets.all(25),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -64,17 +68,17 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                             BoxShadow(
                               color: Colors.black.withOpacity(0.15),
                               blurRadius: 20,
-                              offset: Offset(0, 8),
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
-                        child: Icon(
+                        child: const Icon(
                           FontAwesomeIcons.angleLeft,
                           color: Colors.black,
                         ),
                       ),
                     ),
-                    Text('My Profile', style: TextStyles.loginButtonText),
+                    const Text('My Profile', style: TextStyles.loginButtonText),
                     Container(
                       height: 42,
                       width: 42,
@@ -85,7 +89,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                           BoxShadow(
                             color: Colors.black.withOpacity(0.15),
                             blurRadius: 20,
-                            offset: Offset(0, 8),
+                            offset: const Offset(0, 8),
                           ),
                         ],
                       ),
@@ -98,7 +102,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                               Navigator.of(context)
                                   .pushNamed(ListenMainPage.routeName);
                             },
-                            padding: EdgeInsets.all(5),
+                            padding: const EdgeInsets.all(5),
                             height: 42,
                             value: 'item1',
                             child: Container(
@@ -112,7 +116,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.15),
                                     blurRadius: 20,
-                                    offset: Offset(0, 8),
+                                    offset: const Offset(0, 8),
                                   ),
                                 ],
                               ),
@@ -129,7 +133,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                               Navigator.of(context)
                                   .pushNamed(ReadMainPage.routeName);
                             },
-                            padding: EdgeInsets.all(5),
+                            padding: const EdgeInsets.all(5),
                             height: 42,
                             value: 'item2',
                             child: Container(
@@ -143,7 +147,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.15),
                                     blurRadius: 20,
-                                    offset: Offset(0, 8),
+                                    offset: const Offset(0, 8),
                                   ),
                                 ],
                               ),
@@ -161,7 +165,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                               Navigator.of(context)
                                   .pushNamed(ExerciseMainPage.routeName);
                             },
-                            padding: EdgeInsets.all(5),
+                            padding: const EdgeInsets.all(5),
                             height: 42,
                             value: 'item3',
                             child: Container(
@@ -175,7 +179,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.15),
                                     blurRadius: 20,
-                                    offset: Offset(0, 8),
+                                    offset: const Offset(0, 8),
                                   ),
                                 ],
                               ),
@@ -189,7 +193,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                             ),
                           ),
                         ],
-                        child: Icon(
+                        child: const Icon(
                           Icons.menu,
                           color: Colors.black,
                         ),
@@ -198,296 +202,366 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                   ],
                 ),
                 const Gap(20),
-                Container(
-                  padding: EdgeInsets.all(10),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            height: 85,
-                            width: 85,
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(50),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
-                                  blurRadius: 20,
-                                  offset: Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: Image.asset(
-                                AssetHelper.storyilu,
-                                fit: BoxFit.fill,
-                              ),
-                            ),
-                          ),
-                          const Gap(25),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                FutureBuilder(
+                    future: Future.wait([
+                      _achievementRepo.getAllAchievements(),
+                      _readingTopicRepo.getAllTopic(),
+                      _readingProgressRepo.getReadingProgressById(
+                          FirebaseAuth.instance.currentUser!.uid),
+                      _userRepo
+                          .getUserById(FirebaseAuth.instance.currentUser!.uid)
+                    ]),
+                    builder: (BuildContext context, AsyncSnapshot snapshot) {
+                      if (snapshot.hasData) {
+                        int completedAchievements = 0;
+                        List<Achievement> achievements = snapshot.data[0];
+                        List<ReadingTopic> readingTopics = snapshot.data[1];
+                        ReadingProgress readingProgress = snapshot.data[2];
+                        MyUser user = snapshot.data[3];
+                        for (int i = 0; i < achievements.length; i++) {
+                          Achievement currentAchievement = achievements[i];
+                          int currentProgress = 0;
+                          if (currentAchievement.type == 'reading') {
+                            for (ReadingTopic readingTopic in readingTopics) {
+                              ReadingProgressCollection progress =
+                                  readingProgress.progresses.singleWhere(
+                                      (progress) =>
+                                          progress.unitId ==
+                                          readingTopic.unitId,
+                                      orElse: () => ReadingProgressCollection(
+                                          unitId: '0', currentProgress: 0));
+                              if (progress.currentProgress >=
+                                  readingTopic.maxQuestions) {
+                                currentProgress++;
+                              }
+                            }
+                            if (currentProgress >=
+                                currentAchievement.maxIndex) {
+                              completedAchievements++;
+                            }
+                          }
+                        }
+                        return Container(
+                          padding: const EdgeInsets.all(10),
+                          child: Column(
                             children: [
-                              Text('John Doe',
-                                  style: TextStyles.titleComponent),
-                              const Gap(10),
-                              Text('Newbie', style: TextStyles.kindUser),
+                              Row(
+                                children: [
+                                  Container(
+                                    height: 85,
+                                    width: 85,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(50),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.15),
+                                          blurRadius: 20,
+                                          offset: const Offset(0, 8),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(50),
+                                      child: Image.asset(
+                                        AssetHelper.storyilu,
+                                        fit: BoxFit.fill,
+                                      ),
+                                    ),
+                                  ),
+                                  const Gap(25),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Text(user.name,
+                                          style: TextStyles.titleComponent),
+                                      const Gap(10),
+                                      Text(
+                                          completedAchievements < 5
+                                              ? 'Foundation'
+                                              : completedAchievements < 10
+                                                  ? 'Beginner'
+                                                  : 'Intermediate',
+                                          style: TextStyles.kindUser),
+                                    ],
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      alignment: Alignment.centerRight,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (context) => PrivacyPage(
+                                                user: user,
+                                                completedAchievements:
+                                                    completedAchievements,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Icon(
+                                          FontAwesomeIcons.penToSquare,
+                                          color: Colors.black.withOpacity(0.8),
+                                          size: 30,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const Gap(30),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 3, vertical: 5),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: ColorPalette.kindUser,
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 4,
+                                      child: Container(
+                                        alignment: Alignment.centerLeft,
+                                        child: const Column(
+                                          children: [
+                                            Text('2+ hours',
+                                                style: TextStyles.pageTitle),
+                                            Text('Total Learn',
+                                                style: TextStyles.kindUser),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 1,
+                                      height: 30,
+                                      child: Container(
+                                        color: ColorPalette.kindUser,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 5,
+                                      child: Column(
+                                        children: [
+                                          Text(completedAchievements.toString(),
+                                              style: TextStyles.titleComponent),
+                                          const Text('Achievement',
+                                              style: TextStyles.kindUser),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 1,
+                                      height: 30,
+                                      child: Container(
+                                        color: ColorPalette.kindUser,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 4,
+                                      child: Container(
+                                        alignment: Alignment.centerRight,
+                                        child: const Column(
+                                          children: [
+                                            Text('2',
+                                                style:
+                                                    TextStyles.titleComponent),
+                                            Text('Language',
+                                                style: TextStyles.kindUser),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Gap(15),
+                              Container(
+                                width: size.width,
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: ColorPalette.kindUser,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('Dashboard',
+                                        style: TextStyles.labelField),
+                                    const Gap(20),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context)
+                                            .pushNamed(SettingPage.routeName);
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: ColorPalette.primaryColor,
+                                            ),
+                                            child: const Icon(
+                                              Icons.settings_outlined,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const Gap(10),
+                                          const Text('Settings',
+                                              style: TextStyles.nameFunction),
+                                          Expanded(
+                                            child: Container(
+                                              alignment: Alignment.centerRight,
+                                              child: const Icon(
+                                                FontAwesomeIcons.caretRight,
+                                                color: ColorPalette.kindUser,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    const Gap(20),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).pushNamed(
+                                            AchievementPage.routeName);
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.yellow,
+                                            ),
+                                            child: const Icon(
+                                              FontAwesomeIcons.trophy,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const Gap(10),
+                                          const Text('Achievements',
+                                              style: TextStyles.nameFunction),
+                                          Expanded(
+                                            child: Container(
+                                              alignment: Alignment.centerRight,
+                                              child: const Icon(
+                                                FontAwesomeIcons.caretRight,
+                                                color: ColorPalette.kindUser,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    const Gap(20),
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => PrivacyPage(
+                                              user: user,
+                                              completedAchievements:
+                                                  completedAchievements,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            width: 40,
+                                            height: 40,
+                                            decoration: const BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              color: Colors.grey,
+                                            ),
+                                            child: const Icon(
+                                              Icons.lock_outline,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const Gap(10),
+                                          const Text('Privacy',
+                                              style: TextStyles.nameFunction),
+                                          Expanded(
+                                            child: Container(
+                                              alignment: Alignment.centerRight,
+                                              child: const Icon(
+                                                FontAwesomeIcons.caretRight,
+                                                color: ColorPalette.kindUser,
+                                                size: 20,
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Gap(25),
+                              Container(
+                                width: size.width,
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: ColorPalette.kindUser,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text('My Account',
+                                        style: TextStyles.labelField),
+                                    const Gap(15),
+                                    GestureDetector(
+                                      onTap: () {
+                                        showModalBottomSheet(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return const LogOutDialog(); // Hiển thị bottom sheet đăng xuất
+                                          },
+                                          isScrollControlled: true,
+                                        );
+                                      },
+                                      child: Text(
+                                        'Log Out Account',
+                                        style: TextStyles.nameFunction.copyWith(
+                                          color: Colors.redAccent,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
-                          Expanded(
-                            child: Container(
-                              alignment: Alignment.centerRight,
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context)
-                                      .pushNamed(PrivacyPage.routeName);
-                                },
-                                child: Icon(
-                                  FontAwesomeIcons.edit,
-                                  color: Colors.black.withOpacity(0.8),
-                                  size: 30,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Gap(30),
-                      Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 3, vertical: 5),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(
-                              color: ColorPalette.kindUser,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              flex: 4,
-                              child: Container(
-                                alignment: Alignment.centerLeft,
-                                child: Column(
-                                  children: [
-                                    Text('2+ hours',
-                                        style: TextStyles.pageTitle),
-                                    Text('Total Learn',
-                                        style: TextStyles.kindUser),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              width: 1,
-                              height: 30,
-                              child: Container(
-                                color: ColorPalette.kindUser,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 5,
-                              child: Column(
-                                children: [
-                                  Text('20', style: TextStyles.titleComponent),
-                                  Text('Achievement',
-                                      style: TextStyles.kindUser),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              width: 1,
-                              height: 30,
-                              child: Container(
-                                color: ColorPalette.kindUser,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 4,
-                              child: Container(
-                                alignment: Alignment.centerRight,
-                                child: Column(
-                                  children: [
-                                    Text('2', style: TextStyles.titleComponent),
-                                    Text('Language',
-                                        style: TextStyles.kindUser),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Gap(15),
-                      Container(
-                        width: size.width,
-                        padding: EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: ColorPalette.kindUser,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Dashboard', style: TextStyles.labelField),
-                            const Gap(20),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.of(context)
-                                    .pushNamed(SettingPage.routeName);
-                              },
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: ColorPalette.primaryColor,
-                                    ),
-                                    child: Icon(
-                                      Icons.settings_outlined,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const Gap(10),
-                                  Text('Settings',
-                                      style: TextStyles.nameFunction),
-                                  Expanded(
-                                    child: Container(
-                                      alignment: Alignment.centerRight,
-                                      child: Icon(
-                                        FontAwesomeIcons.caretRight,
-                                        color: ColorPalette.kindUser,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            const Gap(20),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.of(context)
-                                    .pushNamed(AchievementPage.routeName);
-                              },
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.yellow,
-                                    ),
-                                    child: Icon(
-                                      FontAwesomeIcons.trophy,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const Gap(10),
-                                  Text('Achievements',
-                                      style: TextStyles.nameFunction),
-                                  Expanded(
-                                    child: Container(
-                                      alignment: Alignment.centerRight,
-                                      child: Icon(
-                                        FontAwesomeIcons.caretRight,
-                                        color: ColorPalette.kindUser,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                            const Gap(20),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.of(context)
-                                    .pushNamed(PrivacyPage.routeName);
-                              },
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 40,
-                                    height: 40,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: Colors.grey,
-                                    ),
-                                    child: Icon(
-                                      Icons.lock_outline,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const Gap(10),
-                                  Text('Privacy',
-                                      style: TextStyles.nameFunction),
-                                  Expanded(
-                                    child: Container(
-                                      alignment: Alignment.centerRight,
-                                      child: Icon(
-                                        FontAwesomeIcons.caretRight,
-                                        color: ColorPalette.kindUser,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  )
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const Gap(25),
-                      Container(
-                        width: size.width,
-                        padding: EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: ColorPalette.kindUser,
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('My Account', style: TextStyles.labelField),
-                            const Gap(15),
-                            GestureDetector(
-                              onTap: () {
-                                showModalBottomSheet(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return const LogOutDialog(); // Hiển thị bottom sheet đăng xuất
-                                  },
-                                  isScrollControlled: true,
-                                );
-                              },
-                              child: Text(
-                                'Log Out Account',
-                                style: TextStyles.nameFunction.copyWith(
-                                  color: Colors.redAccent,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                        );
+                      } else {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                    }),
               ],
             ),
           ),
@@ -519,7 +593,7 @@ class _ProfileMainPageState extends State<ProfileMainPage> {
                 break;
             }
           },
-          items: [
+          items: const [
             BottomNavigationBarItem(
               icon: Icon(
                 Icons.menu_book_sharp,
