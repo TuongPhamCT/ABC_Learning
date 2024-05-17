@@ -4,6 +4,7 @@ import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:async/async.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -23,14 +24,85 @@ class ListenTopicPage extends StatefulWidget {
 
 class _ListenTopicPageState extends State<ListenTopicPage> {
   late Future<DocumentSnapshot> _unitDocument;
+  late Future<List<QueryDocumentSnapshot>> _listeningDocument;
+  late String? email;
   @override
   void initState() {
     super.initState();
     _unitDocument = _fetchUnitDocument(widget.unitsId);
+    _listeningDocument = fetchListeningDocuments(widget.unitsId);
+    email = FirebaseAuth.instance.currentUser?.email;
   }
 
   Future<DocumentSnapshot> _fetchUnitDocument(String unitsId) async {
     return FirebaseFirestore.instance.collection('units').doc(unitsId).get();
+  }
+
+  Future<List<QueryDocumentSnapshot>> fetchListeningDocuments(
+      String unitId) async {
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('listening')
+        .where('units_id', isEqualTo: unitId)
+        .get();
+
+    return querySnapshot.docs;
+  }
+
+  Future<List<Map<String, dynamic>>> fetchResults(
+      String email, String unitId) async {
+    final String? userId = await fetchUserIdByEmail(email);
+    if (userId != null) {
+      final DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('results')
+          .doc('${userId}_$unitId')
+          .get();
+      if (snapshot.exists) {
+        return List<Map<String, dynamic>>.from(snapshot['results']);
+      } else {
+        return [];
+      }
+    } else {
+      return [];
+    }
+  }
+
+  Future<String?> fetchUserIdByEmail(String email) async {
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.first.id;
+    } else {
+      return null;
+    }
+  }
+
+  Future<void> updateResult(
+      String userId, String unitId, String questionId, bool isCorrect) async {
+    final DocumentReference docRef = FirebaseFirestore.instance
+        .collection('results')
+        .doc('${userId}_$unitId');
+
+    final DocumentSnapshot snapshot = await docRef.get();
+
+    if (snapshot.exists) {
+      await docRef.update({
+        'results': FieldValue.arrayUnion([
+          {'question_id': questionId, 'is_correct': isCorrect}
+        ]),
+      });
+    } else {
+      await docRef.set({
+        'unit_id': unitId,
+        'user_id': userId,
+        'results': [
+          {'question_id': questionId, 'is_correct': isCorrect}
+        ],
+      });
+    }
   }
 
   int cauHoi = 1;
@@ -289,7 +361,7 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   _pageController.nextPage(
                                     duration: Duration(milliseconds: 300),
                                     curve: Curves.easeInOut,
@@ -297,6 +369,23 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                   setState(() {
                                     cauHoi++;
                                   });
+                                  bool isCorrect = true;
+                                  if (email != null) {
+                                    final String? userId =
+                                        await fetchUserIdByEmail(email!);
+                                    if (userId != null) {
+                                      await updateResult(
+                                        userId,
+                                        widget.unitsId,
+                                        'question_1', // Thay thế bằng questionId thực tế
+                                        isCorrect,
+                                      );
+                                    } else {
+                                      print('User ID not found');
+                                    }
+                                  } else {
+                                    print('User is not logged in');
+                                  }
                                 },
                                 style: ButtonStyle(
                                   padding: MaterialStateProperty.all<
@@ -327,9 +416,10 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                'What animal is that?',
+                                '${snapshot.data!.get('question_2')['question_name']}',
                                 style: TextStyles.titlePage
                                     .copyWith(color: Colors.black),
+                                textAlign: TextAlign.center,
                               ),
                               const Gap(15),
                               Expanded(
@@ -564,10 +654,47 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                   )
                               else
                                 ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     setState(() {
                                       checkAnswer = true;
                                     });
+                                    if (selectedAnswer == answer) {
+                                      bool isCorrect = true;
+                                      if (email != null) {
+                                        final String? userId =
+                                            await fetchUserIdByEmail(email!);
+                                        if (userId != null) {
+                                          await updateResult(
+                                            userId,
+                                            widget.unitsId,
+                                            'question_2', // Thay thế bằng questionId thực tế
+                                            isCorrect,
+                                          );
+                                        } else {
+                                          print('User ID not found');
+                                        }
+                                      } else {
+                                        print('User is not logged in');
+                                      }
+                                    } else {
+                                      bool isCorrect = false;
+                                      if (email != null) {
+                                        final String? userId =
+                                            await fetchUserIdByEmail(email!);
+                                        if (userId != null) {
+                                          await updateResult(
+                                            userId,
+                                            widget.unitsId,
+                                            'question_2', // Thay thế bằng questionId thực tế
+                                            isCorrect,
+                                          );
+                                        } else {
+                                          print('User ID not found');
+                                        }
+                                      } else {
+                                        print('User is not logged in');
+                                      }
+                                    }
                                   },
                                   style: ButtonStyle(
                                     padding: MaterialStateProperty.all<
@@ -598,9 +725,10 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Text(
-                                'What animal is that?',
+                                '${snapshot.data!.get('question_3')['question_name']}',
                                 style: TextStyles.titlePage
                                     .copyWith(color: Colors.black),
+                                textAlign: TextAlign.center,
                               ),
                               const Gap(15),
                               Expanded(
@@ -609,7 +737,9 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                     ElevatedButton(
                                       onPressed: () async {
                                         await player.play(
-                                          AssetSource('audio/test.mp3',
+                                          UrlSource(
+                                              snapshot.data!.get(
+                                                  'question_3')['audio_url'],
                                               mimeType: 'audio/mpeg'),
                                         );
                                       },
@@ -703,17 +833,10 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                             EdgeInsets.all(0)),
                                         fixedSize:
                                             MaterialStateProperty.all<Size>(
-                                                Size(size.width / 2 - 35, 110)),
+                                                Size(size.width, 110)),
                                         backgroundColor:
                                             MaterialStateProperty.all<Color>(
                                                 Colors.white),
-                                        side: MaterialStateProperty.all<
-                                            BorderSide>(
-                                          BorderSide(
-                                            color: Colors.black,
-                                            width: 1,
-                                          ),
-                                        ),
                                         shape: MaterialStateProperty.all<
                                             RoundedRectangleBorder>(
                                           RoundedRectangleBorder(
@@ -722,15 +845,21 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                           ),
                                         ),
                                       ),
-                                      child: Image.asset(AssetHelper.ggAvatar),
+                                      child: Image.network(
+                                        '${snapshot.data!.get('question_3')['img_url']}',
+                                        width:
+                                            MediaQuery.of(context).size.width,
+                                        height: 200,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                     Expanded(child: Container()),
                                   ],
                                 ),
                               ),
                               if (checkAnswer)
-                                if (trueAnswer.trim().toLowerCase() ==
-                                    textController.text.trim().toLowerCase())
+                                if ('${snapshot.data!.get('question_3')['right']['answer']}' ==
+                                    textController.text.trim().toUpperCase())
                                   Container(
                                     height: size.height * 0.3,
                                     padding: const EdgeInsets.all(8),
@@ -757,8 +886,9 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                         Container(
                                           alignment: Alignment.center,
                                           child: Text(
-                                            'Elephant',
+                                            '${snapshot.data!.get('question_3')['right']['description']}',
                                             style: TextStyles.trueAnswer,
+                                            textAlign: TextAlign.center,
                                           ),
                                         ),
                                         Expanded(child: Container()),
@@ -775,6 +905,7 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                                 cauHoi++;
                                                 checkAnswer = false;
                                               });
+                                              bool isCorrect = true;
                                             },
                                             style: ButtonStyle(
                                               padding: MaterialStateProperty
@@ -835,7 +966,7 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                         Container(
                                           alignment: Alignment.center,
                                           child: Text(
-                                            'Elephant',
+                                            '${snapshot.data!.get('question_3')['wrong']['description']}',
                                             style:
                                                 TextStyles.trueAnswer.copyWith(
                                               color: Colors.red,
@@ -885,10 +1016,52 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                   )
                               else
                                 ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     setState(() {
                                       checkAnswer = true;
                                     });
+                                    if ('${snapshot.data!.get('question_3')['right']['answer']}'
+                                            .trim()
+                                            .toUpperCase() ==
+                                        textController.text
+                                            .trim()
+                                            .toUpperCase()) {
+                                      bool isCorrect = true;
+                                      if (email != null) {
+                                        final String? userId =
+                                            await fetchUserIdByEmail(email!);
+                                        if (userId != null) {
+                                          await updateResult(
+                                            userId,
+                                            widget.unitsId,
+                                            'question_3', // Thay thế bằng questionId thực tế
+                                            isCorrect,
+                                          );
+                                        } else {
+                                          print('User ID not found');
+                                        }
+                                      } else {
+                                        print('User is not logged in');
+                                      }
+                                    } else {
+                                      bool isCorrect = false;
+                                      if (email != null) {
+                                        final String? userId =
+                                            await fetchUserIdByEmail(email!);
+                                        if (userId != null) {
+                                          await updateResult(
+                                            userId,
+                                            widget.unitsId,
+                                            'question_3', // Thay thế bằng questionId thực tế
+                                            isCorrect,
+                                          );
+                                        } else {
+                                          print('User ID not found');
+                                        }
+                                      } else {
+                                        print('User is not logged in');
+                                      }
+                                    }
                                   },
                                   style: ButtonStyle(
                                     padding: MaterialStateProperty.all<
@@ -919,165 +1092,270 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                'Listening',
-                                style: TextStyles.titlePage
-                                    .copyWith(color: Colors.black),
-                              ),
-                              const Gap(15),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(7),
-                                  border: Border.all(
-                                    color: ColorPalette.itemBorder,
-                                    width: 1,
-                                  ),
-                                ),
-                                padding: EdgeInsets.all(15),
-                                margin: EdgeInsets.only(bottom: 20),
-                                child: Row(
-                                  children: [
-                                    Image.asset(
-                                      AssetHelper.itemListen,
-                                      width: 60,
-                                      height: 60,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    Gap(10),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Alphabet',
-                                          style: TextStyles.itemTitle,
-                                        ),
-                                        const Gap(12),
-                                        Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Container(
-                                              width: size.width - 185,
-                                              height: 10,
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                child: LinearProgressIndicator(
-                                                  value: 9 / 50,
-                                                  backgroundColor: ColorPalette
-                                                      .progressbarbackground,
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<
-                                                              Color>(
-                                                          ColorPalette
-                                                              .progressbarValue),
+                              FutureBuilder(
+                                future: fetchListeningDocuments(widget.unitsId),
+                                builder: (context,
+                                    AsyncSnapshot<List<QueryDocumentSnapshot>>
+                                        snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return Center(
+                                        child:
+                                            Text('Error: ${snapshot.error}'));
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data!.isEmpty) {
+                                    return Center(child: Text('No data found'));
+                                  } else {
+                                    var listeningData = snapshot.data!.first
+                                        .data() as Map<String, dynamic>;
+                                    int currentIndex =
+                                        listeningData['currentIndex'];
+                                    int maxIndex = listeningData['maxIndex'];
+                                    String title = listeningData['title'];
+
+                                    return Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Listening',
+                                            style: TextStyles.titlePage
+                                                .copyWith(color: Colors.black),
+                                          ),
+                                          const Gap(15),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(7),
+                                              border: Border.all(
+                                                color: ColorPalette.itemBorder,
+                                                width: 1,
+                                              ),
+                                            ),
+                                            padding: EdgeInsets.all(15),
+                                            margin: EdgeInsets.only(bottom: 20),
+                                            child: Row(
+                                              children: [
+                                                Image.asset(
+                                                  AssetHelper.itemListen,
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                                Gap(10),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      title,
+                                                      style:
+                                                          TextStyles.itemTitle,
+                                                    ),
+                                                    const Gap(12),
+                                                    Row(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .end,
+                                                      children: [
+                                                        Container(
+                                                          width:
+                                                              size.width - 185,
+                                                          height: 10,
+                                                          child: ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        15),
+                                                            child: ClipRRect(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          15),
+                                                              child:
+                                                                  LinearProgressIndicator(
+                                                                value:
+                                                                    currentIndex /
+                                                                        maxIndex,
+                                                                backgroundColor:
+                                                                    ColorPalette
+                                                                        .progressbarbackground,
+                                                                valueColor: AlwaysStoppedAnimation<
+                                                                        Color>(
+                                                                    ColorPalette
+                                                                        .progressbarValue),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Gap(8),
+                                                        Text(
+                                                          '$currentIndex/$maxIndex',
+                                                          style: TextStyles
+                                                              .itemprogress,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Expanded(child: Container()),
+                                          Container(
+                                            height: size.height * 0.5,
+                                            child: FutureBuilder(
+                                              future: fetchResults(
+                                                  email!, widget.unitsId),
+                                              builder: (context,
+                                                  AsyncSnapshot<
+                                                          List<
+                                                              Map<String,
+                                                                  dynamic>>>
+                                                      snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return Center(
+                                                      child:
+                                                          CircularProgressIndicator());
+                                                } else if (snapshot.hasError) {
+                                                  return Center(
+                                                      child: Text(
+                                                          'Error: ${snapshot.error}'));
+                                                } else if (!snapshot.hasData ||
+                                                    snapshot.data!.isEmpty) {
+                                                  return Center(
+                                                      child: Text(
+                                                          'No results found'));
+                                                } else {
+                                                  List<Map<String, dynamic>>
+                                                      results = snapshot.data!;
+                                                  return GridView.builder(
+                                                    gridDelegate:
+                                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                                      crossAxisCount: 3,
+                                                      childAspectRatio: 2.5,
+                                                      mainAxisSpacing: 10,
+                                                      crossAxisSpacing: 10,
+                                                    ),
+                                                    itemCount: results
+                                                        .length, // Số lượng item tùy theo kết quả
+                                                    itemBuilder:
+                                                        (BuildContext context,
+                                                            int index) {
+                                                      Map<String, dynamic>
+                                                          result =
+                                                          results[index];
+                                                      bool isCorrect =
+                                                          result['is_correct'];
+                                                      Color getItemColor() {
+                                                        return isCorrect
+                                                            ? Colors.green
+                                                            : Colors.red;
+                                                      }
+
+                                                      return Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black
+                                                                  .withOpacity(
+                                                                      0.15),
+                                                              blurRadius: 5,
+                                                              offset:
+                                                                  Offset(0, 2),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: ElevatedButton(
+                                                          onPressed: () {},
+                                                          style: ButtonStyle(
+                                                            padding:
+                                                                MaterialStateProperty.all<
+                                                                        EdgeInsetsGeometry>(
+                                                                    EdgeInsets
+                                                                        .all(
+                                                                            8)),
+                                                            fixedSize: MaterialStateProperty
+                                                                .all<Size>(Size(
+                                                                    size.width *
+                                                                        0.27,
+                                                                    36)),
+                                                            backgroundColor:
+                                                                MaterialStateProperty
+                                                                    .all<Color>(
+                                                                        getItemColor()),
+                                                            shape: MaterialStateProperty
+                                                                .all<
+                                                                    RoundedRectangleBorder>(
+                                                              RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          child: Text(
+                                                              '${result['question_id']}',
+                                                              style: TextStyles
+                                                                  .loginButtonText),
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                          Expanded(child: Container()),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            style: ButtonStyle(
+                                              padding: MaterialStateProperty
+                                                  .all<EdgeInsetsGeometry>(
+                                                      EdgeInsets.all(8)),
+                                              fixedSize: MaterialStateProperty
+                                                  .all<Size>(Size(
+                                                      size.width * 0.75, 55)),
+                                              backgroundColor:
+                                                  MaterialStateProperty
+                                                      .all<Color>(ColorPalette
+                                                          .primaryColor),
+                                              side: MaterialStateProperty
+                                                  .all<BorderSide>(BorderSide(
+                                                      color: Colors.white,
+                                                      width: 1)),
+                                              shape: MaterialStateProperty.all<
+                                                  RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(40),
                                                 ),
                                               ),
                                             ),
-                                            Gap(8),
-                                            Text(
-                                              '9/50',
-                                              style: TextStyles.itemprogress,
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(child: Container()),
-                              Container(
-                                height: size.height * 0.5,
-                                child: GridView.builder(
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 3,
-                                    childAspectRatio: 2.5,
-                                    mainAxisSpacing: 10,
-                                    crossAxisSpacing: 10,
-                                  ),
-                                  itemCount:
-                                      50, // Thay đổi số lượng item tùy theo nhu cầu của bạn
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    Color getItemColor(int index) {
-                                      if (index % 3 == 0) {
-                                        return Colors.green;
-                                      } else if (index % 3 == 1) {
-                                        return Colors.red;
-                                      } else {
-                                        return Colors.grey;
-                                      }
-                                    }
-
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.15),
-                                            blurRadius: 5,
-                                            offset: Offset(0, 2),
+                                            child: Text('Finish',
+                                                style:
+                                                    TextStyles.loginButtonText),
                                           ),
+                                          const Gap(15),
                                         ],
                                       ),
-                                      child: ElevatedButton(
-                                        onPressed: () {},
-                                        style: ButtonStyle(
-                                          padding: MaterialStateProperty.all<
-                                                  EdgeInsetsGeometry>(
-                                              EdgeInsets.all(8)),
-                                          fixedSize:
-                                              MaterialStateProperty.all<Size>(
-                                                  Size(size.width * 0.27, 36)),
-                                          backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                                  getItemColor(index)),
-                                          shape: MaterialStateProperty.all<
-                                              RoundedRectangleBorder>(
-                                            RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                        ),
-                                        child: Text('${index + 1}',
-                                            style: TextStyles.loginButtonText),
-                                      ),
                                     );
-                                  },
-                                ),
-                              ),
-                              Expanded(child: Container()),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
+                                  }
                                 },
-                                style: ButtonStyle(
-                                  padding: MaterialStateProperty.all<
-                                      EdgeInsetsGeometry>(EdgeInsets.all(8)),
-                                  fixedSize: MaterialStateProperty.all<Size>(
-                                      Size(size.width * 0.75, 55)),
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          ColorPalette.primaryColor),
-                                  side: MaterialStateProperty.all<BorderSide>(
-                                      BorderSide(
-                                          color: Colors.white, width: 1)),
-                                  shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(40),
-                                    ),
-                                  ),
-                                ),
-                                child: Text('Finish',
-                                    style: TextStyles.loginButtonText),
                               ),
-                              const Gap(15),
                             ],
                           ),
                         ],
