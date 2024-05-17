@@ -48,8 +48,8 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
     return querySnapshot.docs;
   }
 
-  Future<List<Map<String, dynamic>>> fetchResults(
-      String email, String unitId) async {
+  Stream<List<Map<String, dynamic>>> fetchResults(
+      String email, String unitId) async* {
     final String? userId = await fetchUserIdByEmail(email);
     if (userId != null) {
       final DocumentSnapshot snapshot = await FirebaseFirestore.instance
@@ -57,12 +57,32 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
           .doc('${userId}_$unitId')
           .get();
       if (snapshot.exists) {
-        return List<Map<String, dynamic>>.from(snapshot['results']);
+        final results = List<Map<String, dynamic>>.from(snapshot['results']);
+        int correctAnswers =
+            results.where((result) => result['is_correct']).length;
+
+        await updateCurrentIndexIfNeeded(unitId, correctAnswers);
+
+        yield results;
       } else {
-        return [];
+        yield [];
       }
     } else {
-      return [];
+      yield [];
+    }
+  }
+
+  Future<void> updateCurrentIndexIfNeeded(
+      String unitsId, int newCorrectAnswers) async {
+    final listeningDocs = await fetchListeningDocuments(unitsId);
+    if (listeningDocs.isNotEmpty) {
+      final docRef = listeningDocs.first.reference;
+      final listeningData = listeningDocs.first.data() as Map<String, dynamic>;
+      int currentIndex = listeningData['currentIndex'];
+
+      if (newCorrectAnswers > currentIndex) {
+        await docRef.update({'currentIndex': newCorrectAnswers});
+      }
     }
   }
 
@@ -89,10 +109,23 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
     final DocumentSnapshot snapshot = await docRef.get();
 
     if (snapshot.exists) {
+      List<Map<String, dynamic>> results =
+          List<Map<String, dynamic>>.from(snapshot['results']);
+      bool questionFound = false;
+      for (var result in results) {
+        if (result['question_id'] == questionId) {
+          result['is_correct'] = isCorrect;
+          questionFound = true;
+          break;
+        }
+      }
+
+      if (!questionFound) {
+        results.add({'question_id': questionId, 'is_correct': isCorrect});
+      }
+
       await docRef.update({
-        'results': FieldValue.arrayUnion([
-          {'question_id': questionId, 'is_correct': isCorrect}
-        ]),
+        'results': results,
       });
     } else {
       await docRef.set({
@@ -1088,15 +1121,17 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                             ],
                           ),
 
-                          //Trang thu 4
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              FutureBuilder(
-                                future: fetchListeningDocuments(widget.unitsId),
+                              StreamBuilder(
+                                stream: FirebaseFirestore.instance
+                                    .collection('listening')
+                                    .where('units_id',
+                                        isEqualTo: widget.unitsId)
+                                    .snapshots(),
                                 builder: (context,
-                                    AsyncSnapshot<List<QueryDocumentSnapshot>>
-                                        snapshot) {
+                                    AsyncSnapshot<QuerySnapshot> snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
                                     return Center(
@@ -1106,11 +1141,12 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                         child:
                                             Text('Error: ${snapshot.error}'));
                                   } else if (!snapshot.hasData ||
-                                      snapshot.data!.isEmpty) {
+                                      snapshot.data!.docs.isEmpty) {
                                     return Center(child: Text('No data found'));
                                   } else {
-                                    var listeningData = snapshot.data!.first
-                                        .data() as Map<String, dynamic>;
+                                    var listeningData =
+                                        snapshot.data!.docs.first.data()
+                                            as Map<String, dynamic>;
                                     int currentIndex =
                                         listeningData['currentIndex'];
                                     int maxIndex = listeningData['maxIndex'];
@@ -1171,24 +1207,19 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                                                 BorderRadius
                                                                     .circular(
                                                                         15),
-                                                            child: ClipRRect(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          15),
-                                                              child:
-                                                                  LinearProgressIndicator(
-                                                                value:
-                                                                    currentIndex /
-                                                                        maxIndex,
-                                                                backgroundColor:
-                                                                    ColorPalette
-                                                                        .progressbarbackground,
-                                                                valueColor: AlwaysStoppedAnimation<
-                                                                        Color>(
-                                                                    ColorPalette
-                                                                        .progressbarValue),
-                                                              ),
+                                                            child:
+                                                                LinearProgressIndicator(
+                                                              value:
+                                                                  currentIndex /
+                                                                      maxIndex,
+                                                              backgroundColor:
+                                                                  ColorPalette
+                                                                      .progressbarbackground,
+                                                              valueColor:
+                                                                  AlwaysStoppedAnimation<
+                                                                          Color>(
+                                                                      ColorPalette
+                                                                          .progressbarValue),
                                                             ),
                                                           ),
                                                         ),
@@ -1208,8 +1239,8 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                           Expanded(child: Container()),
                                           Container(
                                             height: size.height * 0.5,
-                                            child: FutureBuilder(
-                                              future: fetchResults(
+                                            child: StreamBuilder(
+                                              stream: fetchResults(
                                                   email!, widget.unitsId),
                                               builder: (context,
                                                   AsyncSnapshot<
@@ -1234,6 +1265,24 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                                 } else {
                                                   List<Map<String, dynamic>>
                                                       results = snapshot.data!;
+                                                  Map<String, bool>
+                                                      uniqueResults = {};
+                                                  for (var result in results) {
+                                                    uniqueResults[result[
+                                                            'question_id']] =
+                                                        result['is_correct'];
+                                                  }
+                                                  List<Map<String, dynamic>>
+                                                      finalResults =
+                                                      uniqueResults.entries
+                                                          .map((e) => {
+                                                                'question_id':
+                                                                    e.key,
+                                                                'is_correct':
+                                                                    e.value
+                                                              })
+                                                          .toList();
+
                                                   return GridView.builder(
                                                     gridDelegate:
                                                         SliverGridDelegateWithFixedCrossAxisCount(
@@ -1242,14 +1291,14 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                                       mainAxisSpacing: 10,
                                                       crossAxisSpacing: 10,
                                                     ),
-                                                    itemCount: results
+                                                    itemCount: finalResults
                                                         .length, // Số lượng item tùy theo kết quả
                                                     itemBuilder:
                                                         (BuildContext context,
                                                             int index) {
                                                       Map<String, dynamic>
                                                           result =
-                                                          results[index];
+                                                          finalResults[index];
                                                       bool isCorrect =
                                                           result['is_correct'];
                                                       Color getItemColor() {
