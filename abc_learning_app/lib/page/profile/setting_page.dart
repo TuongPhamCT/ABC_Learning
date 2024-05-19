@@ -6,7 +6,6 @@ import 'package:abc_learning_app/page/listening/listen_main_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
@@ -35,7 +34,7 @@ class _SettingPageState extends State<SettingPage> {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.all(25),
+        padding: const EdgeInsets.all(25),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -57,11 +56,11 @@ class _SettingPageState extends State<SettingPage> {
                         BoxShadow(
                           color: Colors.black.withOpacity(0.15),
                           blurRadius: 20,
-                          offset: Offset(0, 8),
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
-                    child: Icon(
+                    child: const Icon(
                       FontAwesomeIcons.angleLeft,
                       color: Colors.black,
                     ),
@@ -81,7 +80,7 @@ class _SettingPageState extends State<SettingPage> {
                       BoxShadow(
                         color: Colors.black.withOpacity(0.15),
                         blurRadius: 20,
-                        offset: Offset(0, 8),
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
@@ -94,7 +93,7 @@ class _SettingPageState extends State<SettingPage> {
                           Navigator.of(context)
                               .pushNamed(ListenMainPage.routeName);
                         },
-                        padding: EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(5),
                         height: 42,
                         value: 'item1',
                         child: Container(
@@ -108,7 +107,7 @@ class _SettingPageState extends State<SettingPage> {
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.15),
                                 blurRadius: 20,
-                                offset: Offset(0, 8),
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
@@ -125,7 +124,7 @@ class _SettingPageState extends State<SettingPage> {
                           Navigator.of(context)
                               .pushNamed(ReadMainPage.routeName);
                         },
-                        padding: EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(5),
                         height: 42,
                         value: 'item2',
                         child: Container(
@@ -139,7 +138,7 @@ class _SettingPageState extends State<SettingPage> {
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.15),
                                 blurRadius: 20,
-                                offset: Offset(0, 8),
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
@@ -157,7 +156,7 @@ class _SettingPageState extends State<SettingPage> {
                           Navigator.of(context)
                               .pushNamed(ExerciseMainPage.routeName);
                         },
-                        padding: EdgeInsets.all(5),
+                        padding: const EdgeInsets.all(5),
                         height: 42,
                         value: 'item3',
                         child: Container(
@@ -171,7 +170,7 @@ class _SettingPageState extends State<SettingPage> {
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.15),
                                 blurRadius: 20,
-                                offset: Offset(0, 8),
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
@@ -185,7 +184,7 @@ class _SettingPageState extends State<SettingPage> {
                         ),
                       ),
                     ],
-                    child: Icon(
+                    child: const Icon(
                       Icons.menu,
                       color: Colors.black,
                     ),
@@ -195,10 +194,10 @@ class _SettingPageState extends State<SettingPage> {
             ),
             Expanded(child: Container()),
             Container(
-              padding: EdgeInsets.all(10),
+              padding: const EdgeInsets.all(10),
               child: Container(
                 width: size.width,
-                padding: EdgeInsets.all(15),
+                padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(
@@ -210,13 +209,13 @@ class _SettingPageState extends State<SettingPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      margin: EdgeInsets.symmetric(vertical: 5),
+                      margin: const EdgeInsets.symmetric(vertical: 5),
                       padding:
-                          EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                          const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Dark Mode', style: TextStyles.nameFunction),
+                          const Text('Dark Mode', style: TextStyles.nameFunction),
                           CupertinoSwitch(
                             value: isDarkMode,
                             onChanged: (value) {
@@ -230,11 +229,11 @@ class _SettingPageState extends State<SettingPage> {
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.symmetric(vertical: 10),
+                      margin: const EdgeInsets.symmetric(vertical: 10),
                       padding:
-                          EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                          const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        borderRadius: const BorderRadius.all(Radius.circular(20)),
                         color: isNotification
                             ? ColorPalette.itemBackground.withOpacity(0.5)
                             : Colors.transparent,
@@ -244,7 +243,7 @@ class _SettingPageState extends State<SettingPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Notification',
+                              const Text('Notification',
                                   style: TextStyles.nameFunction),
                               GestureDetector(
                                 onTap: () {
@@ -265,12 +264,12 @@ class _SettingPageState extends State<SettingPage> {
                           Visibility(
                             visible: isNotification,
                             child: Container(
-                              padding: EdgeInsets.all(15),
+                              padding: const EdgeInsets.all(15),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text('Turn on notification',
+                                  const Text('Turn on notification',
                                       style: TextStyles.nameFunction),
                                   CupertinoSwitch(
                                     value: isTurnOnNotification,
@@ -289,11 +288,11 @@ class _SettingPageState extends State<SettingPage> {
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.symmetric(vertical: 10),
+                      margin: const EdgeInsets.symmetric(vertical: 10),
                       padding:
-                          EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                          const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        borderRadius: const BorderRadius.all(Radius.circular(20)),
                         color: isTextSize
                             ? ColorPalette.itemBackground.withOpacity(0.5)
                             : Colors.transparent,
@@ -303,7 +302,7 @@ class _SettingPageState extends State<SettingPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Text Size', style: TextStyles.nameFunction),
+                              const Text('Text Size', style: TextStyles.nameFunction),
                               GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -323,7 +322,7 @@ class _SettingPageState extends State<SettingPage> {
                           Visibility(
                             visible: isTextSize,
                             child: Container(
-                              padding: EdgeInsets.all(15),
+                              padding: const EdgeInsets.all(15),
                               child: Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -334,33 +333,33 @@ class _SettingPageState extends State<SettingPage> {
                                         textSize = 'Small';
                                       });
                                     },
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          WidgetStateProperty.all(
+                                        textSize == 'Small'
+                                            ? ColorPalette.primaryColor
+                                            : Colors.white,
+                                      ),
+                                      fixedSize: WidgetStateProperty.all(
+                                        Size(size.width * 0.18, 35),
+                                      ),
+                                      padding: WidgetStateProperty.all(
+                                        const EdgeInsets.all(0),
+                                      ),
+                                      shape: WidgetStateProperty.all<
+                                          RoundedRectangleBorder>(
+                                        RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
                                     child: Text(
                                       'Small',
                                       style: TextStyles.nameFunction.copyWith(
                                         color: textSize == 'Small'
                                             ? Colors.white
                                             : Colors.black,
-                                      ),
-                                    ),
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                        textSize == 'Small'
-                                            ? ColorPalette.primaryColor
-                                            : Colors.white,
-                                      ),
-                                      fixedSize: MaterialStateProperty.all(
-                                        Size(size.width * 0.18, 35),
-                                      ),
-                                      padding: MaterialStateProperty.all(
-                                        EdgeInsets.all(0),
-                                      ),
-                                      shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                        RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
                                       ),
                                     ),
                                   ),
@@ -370,33 +369,33 @@ class _SettingPageState extends State<SettingPage> {
                                         textSize = 'Medium';
                                       });
                                     },
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          WidgetStateProperty.all(
+                                        textSize == 'Medium'
+                                            ? ColorPalette.primaryColor
+                                            : Colors.white,
+                                      ),
+                                      fixedSize: WidgetStateProperty.all(
+                                        Size(size.width * 0.18, 35),
+                                      ),
+                                      padding: WidgetStateProperty.all(
+                                        const EdgeInsets.all(0),
+                                      ),
+                                      shape: WidgetStateProperty.all<
+                                          RoundedRectangleBorder>(
+                                        RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
                                     child: Text(
                                       'Medium',
                                       style: TextStyles.nameFunction.copyWith(
                                         color: textSize == 'Medium'
                                             ? Colors.white
                                             : Colors.black,
-                                      ),
-                                    ),
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                        textSize == 'Medium'
-                                            ? ColorPalette.primaryColor
-                                            : Colors.white,
-                                      ),
-                                      fixedSize: MaterialStateProperty.all(
-                                        Size(size.width * 0.18, 35),
-                                      ),
-                                      padding: MaterialStateProperty.all(
-                                        EdgeInsets.all(0),
-                                      ),
-                                      shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                        RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
                                       ),
                                     ),
                                   ),
@@ -406,33 +405,33 @@ class _SettingPageState extends State<SettingPage> {
                                         textSize = 'Large';
                                       });
                                     },
+                                    style: ButtonStyle(
+                                      backgroundColor:
+                                          WidgetStateProperty.all(
+                                        textSize == 'Large'
+                                            ? ColorPalette.primaryColor
+                                            : Colors.white,
+                                      ),
+                                      fixedSize: WidgetStateProperty.all(
+                                        Size(size.width * 0.18, 35),
+                                      ),
+                                      padding: WidgetStateProperty.all(
+                                        const EdgeInsets.all(0),
+                                      ),
+                                      shape: WidgetStateProperty.all<
+                                          RoundedRectangleBorder>(
+                                        RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
                                     child: Text(
                                       'Large',
                                       style: TextStyles.nameFunction.copyWith(
                                         color: textSize == 'Large'
                                             ? Colors.white
                                             : Colors.black,
-                                      ),
-                                    ),
-                                    style: ButtonStyle(
-                                      backgroundColor:
-                                          MaterialStateProperty.all(
-                                        textSize == 'Large'
-                                            ? ColorPalette.primaryColor
-                                            : Colors.white,
-                                      ),
-                                      fixedSize: MaterialStateProperty.all(
-                                        Size(size.width * 0.18, 35),
-                                      ),
-                                      padding: MaterialStateProperty.all(
-                                        EdgeInsets.all(0),
-                                      ),
-                                      shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                        RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
                                       ),
                                     ),
                                   ),
@@ -444,11 +443,11 @@ class _SettingPageState extends State<SettingPage> {
                       ),
                     ),
                     Container(
-                      margin: EdgeInsets.symmetric(vertical: 10),
+                      margin: const EdgeInsets.symmetric(vertical: 10),
                       padding:
-                          EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                          const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
+                        borderRadius: const BorderRadius.all(Radius.circular(20)),
                         color: isSound
                             ? ColorPalette.itemBackground.withOpacity(0.5)
                             : Colors.transparent,
@@ -458,7 +457,7 @@ class _SettingPageState extends State<SettingPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Sound And Volume',
+                              const Text('Sound And Volume',
                                   style: TextStyles.nameFunction),
                               GestureDetector(
                                 onTap: () {
@@ -479,7 +478,7 @@ class _SettingPageState extends State<SettingPage> {
                           Visibility(
                             visible: isSound,
                             child: Container(
-                              padding: EdgeInsets.symmetric(
+                              padding: const EdgeInsets.symmetric(
                                   vertical: 15, horizontal: 5),
                               child: Row(
                                 mainAxisAlignment:
@@ -551,10 +550,10 @@ class _SettingPageState extends State<SettingPage> {
                     ),
                     GestureDetector(
                       child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 10),
+                        margin: const EdgeInsets.symmetric(vertical: 10),
                         padding:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 7),
-                        child: Row(
+                            const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Privacy Policy',
@@ -570,10 +569,10 @@ class _SettingPageState extends State<SettingPage> {
                     ),
                     GestureDetector(
                       child: Container(
-                        margin: EdgeInsets.symmetric(vertical: 10),
+                        margin: const EdgeInsets.symmetric(vertical: 10),
                         padding:
-                            EdgeInsets.symmetric(horizontal: 15, vertical: 7),
-                        child: Row(
+                            const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                        child: const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text('Terms and Condition',

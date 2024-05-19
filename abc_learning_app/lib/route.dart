@@ -1,5 +1,6 @@
 import 'package:abc_learning_app/model/reading_data_model.dart';
 import 'package:abc_learning_app/model/reading_progress_model.dart';
+import 'package:abc_learning_app/model/user_model.dart';
 import 'package:abc_learning_app/page/achievement_page.dart';
 import 'package:abc_learning_app/page/age_profile_page.dart';
 import 'package:abc_learning_app/page/email_profile_page.dart';
@@ -64,5 +65,15 @@ final Map<String, WidgetBuilder> routes = {
   ExerciseSubPage.routeName: (context) => const ExerciseSubPage(),
   ProfileMainPage.routeName: (context) => const ProfileMainPage(),
   SettingPage.routeName: (context) => const SettingPage(),
-  PrivacyPage.routeName: (context) => const PrivacyPage(),
+  PrivacyPage.routeName: (context) => PrivacyPage(
+        user: MyUser(
+            address: "address",
+            age: "age",
+            avatar: "avatar",
+            email: "email",
+            gender: "gender",
+            name: "name",
+            phoneNumber: "phoneNumber"),
+        completedAchievements: 0,
+      ),
 };
