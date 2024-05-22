@@ -62,7 +62,9 @@ final Map<String, WidgetBuilder> routes = {
             ReadingProgressCollection(unitId: "unitId", currentProgress: 0),
       ),
   ExerciseMainPage.routeName: (context) => const ExerciseMainPage(),
-  ExerciseSubPage.routeName: (context) => const ExerciseSubPage(),
+  ExerciseSubPage.routeName: (context) => const ExerciseSubPage(
+        unitsId: '',
+      ),
   ProfileMainPage.routeName: (context) => const ProfileMainPage(),
   SettingPage.routeName: (context) => const SettingPage(),
   PrivacyPage.routeName: (context) => PrivacyPage(
