@@ -4,14 +4,14 @@ import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/page/exercise/exercise_sub_page.dart';
 import 'package:abc_learning_app/page/listening/listen_main_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
-import 'package:abc_learning_app/page/reading/read_sub_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
 
 class ExerciseMainPage extends StatefulWidget {
-  const ExerciseMainPage({super.key});
+  const ExerciseMainPage({Key? key}) : super(key: key);
   static const String routeName = 'exercise_main';
 
   @override
@@ -19,6 +19,14 @@ class ExerciseMainPage extends StatefulWidget {
 }
 
 class _ExerciseMainPageState extends State<ExerciseMainPage> {
+  void _navigateToTopicPage(String unitsId) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ExerciseSubPage(unitsId: unitsId),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -194,11 +202,24 @@ class _ExerciseMainPageState extends State<ExerciseMainPage> {
             ),
             const Gap(20),
             Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: 5,
-                itemBuilder: (context, index) {
-                  return buildListenItem();
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('exercises')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Something went wrong');
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return CircularProgressIndicator();
+                  }
+                  return ListView.builder(
+                    itemCount: snapshot.data?.docs.length,
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot document = snapshot.data!.docs[index];
+                      return buildExerciseItem(context, document);
+                    },
+                  );
                 },
               ),
             ),
@@ -209,62 +230,71 @@ class _ExerciseMainPageState extends State<ExerciseMainPage> {
     );
   }
 
-  Widget buildListenItem() {
+  Widget buildExerciseItem(BuildContext context, DocumentSnapshot document) {
     Size size = MediaQuery.of(context).size;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(7),
-        border: Border.all(
-          color: ColorPalette.itemBorder,
-          width: 1,
-        ),
-      ),
-      padding: EdgeInsets.all(15),
-      margin: EdgeInsets.only(bottom: 20),
-      child: Row(
-        children: [
-          Image.asset(
-            AssetHelper.itemListen,
-            width: 60,
-            height: 60,
-            fit: BoxFit.cover,
+    Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+    return GestureDetector(
+        onTap: () {
+          _navigateToTopicPage(data['units_id']);
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(7),
+            border: Border.all(
+              color: ColorPalette.itemBorder,
+              width: 1,
+            ),
           ),
-          Gap(10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: EdgeInsets.all(15),
+          margin: EdgeInsets.only(bottom: 20),
+          child: Row(
             children: [
-              Text(
-                'Alphabet',
-                style: TextStyles.itemTitle,
+              Image.network(
+                data[
+                    'img_url'], // assuming 'image' is the field name for the image URL
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
               ),
-              const Gap(12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Gap(10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    width: size.width - 185,
-                    height: 10,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: LinearProgressIndicator(
-                        value: 9 / 50,
-                        backgroundColor: ColorPalette.progressbarbackground,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                            ColorPalette.progressbarValue),
-                      ),
-                    ),
-                  ),
-                  Gap(8),
                   Text(
-                    '9/50',
-                    style: TextStyles.itemprogress,
+                    data[
+                        'title'], // assuming 'title' is the field name for the title
+                    style: TextStyles.itemTitle,
+                  ),
+                  const Gap(12),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(
+                        width: size.width - 185,
+                        height: 10,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: LinearProgressIndicator(
+                            value: data['currentIndex'] /
+                                data[
+                                    'maxIndex'], // assuming 'progress' is the field name for progress
+                            backgroundColor: ColorPalette.progressbarbackground,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                                ColorPalette.progressbarValue),
+                          ),
+                        ),
+                      ),
+                      Gap(8),
+                      Text(
+                        '${data['currentIndex']}/${data['maxIndex']}', // assuming 'progress' is the field name for progress
+                        style: TextStyles.itemprogress,
+                      ),
+                    ],
                   ),
                 ],
               ),
             ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 }

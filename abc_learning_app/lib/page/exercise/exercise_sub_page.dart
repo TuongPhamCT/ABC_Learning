@@ -12,7 +12,8 @@ import 'package:gap/gap.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class ExerciseSubPage extends StatefulWidget {
-  const ExerciseSubPage({super.key});
+  final String unitsId;
+  const ExerciseSubPage({super.key, required this.unitsId});
   static const String routeName = 'exercise_sub_page';
 
   @override
