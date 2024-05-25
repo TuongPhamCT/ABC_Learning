@@ -346,15 +346,15 @@ class _ReadSubPageState extends State<ReadSubPage> {
             });
           },
           style: ButtonStyle(
-            padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+            padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                 const EdgeInsets.all(8)),
             fixedSize:
-                WidgetStateProperty.all<Size>(Size(size.width * 0.75, 55)),
+                MaterialStateProperty.all<Size>(Size(size.width * 0.75, 55)),
             backgroundColor:
-                WidgetStateProperty.all<Color>(ColorPalette.primaryColor),
-            side: WidgetStateProperty.all<BorderSide>(
+                MaterialStateProperty.all<Color>(ColorPalette.primaryColor),
+            side: MaterialStateProperty.all<BorderSide>(
                 const BorderSide(color: Colors.white, width: 1)),
-            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(40),
               ),
@@ -565,13 +565,13 @@ class _ReadSubPageState extends State<ReadSubPage> {
                             },
                             style: ButtonStyle(
                               padding:
-                                  WidgetStateProperty.all<EdgeInsetsGeometry>(
+                                  MaterialStateProperty.all<EdgeInsetsGeometry>(
                                       const EdgeInsets.all(8)),
-                              fixedSize: WidgetStateProperty.all<Size>(
+                              fixedSize: MaterialStateProperty.all<Size>(
                                   Size(size.width * 0.75, 55)),
-                              backgroundColor: WidgetStateProperty.all<Color>(
+                              backgroundColor: MaterialStateProperty.all<Color>(
                                   Colors.green),
-                              shape: WidgetStateProperty.all<
+                              shape: MaterialStateProperty.all<
                                   RoundedRectangleBorder>(
                                 RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(40),
@@ -638,13 +638,13 @@ class _ReadSubPageState extends State<ReadSubPage> {
                             },
                             style: ButtonStyle(
                               padding:
-                                  WidgetStateProperty.all<EdgeInsetsGeometry>(
+                                  MaterialStateProperty.all<EdgeInsetsGeometry>(
                                       const EdgeInsets.all(8)),
-                              fixedSize: WidgetStateProperty.all<Size>(
+                              fixedSize: MaterialStateProperty.all<Size>(
                                   Size(size.width * 0.75, 55)),
                               backgroundColor:
-                                  WidgetStateProperty.all<Color>(Colors.red),
-                              shape: WidgetStateProperty.all<
+                                  MaterialStateProperty.all<Color>(Colors.red),
+                              shape: MaterialStateProperty.all<
                                   RoundedRectangleBorder>(
                                 RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(40),
@@ -669,15 +669,15 @@ class _ReadSubPageState extends State<ReadSubPage> {
                     });
                   },
                   style: ButtonStyle(
-                    padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+                    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                         const EdgeInsets.all(8)),
-                    fixedSize: WidgetStateProperty.all<Size>(
+                    fixedSize: MaterialStateProperty.all<Size>(
                         Size(size.width * 0.75, 55)),
-                    backgroundColor: WidgetStateProperty.all<Color>(
+                    backgroundColor: MaterialStateProperty.all<Color>(
                         ColorPalette.primaryColor),
-                    side: WidgetStateProperty.all<BorderSide>(
+                    side: MaterialStateProperty.all<BorderSide>(
                         const BorderSide(color: Colors.white, width: 1)),
-                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(40),
                       ),
@@ -695,15 +695,15 @@ class _ReadSubPageState extends State<ReadSubPage> {
                       curve: Curves.easeInOut);
                 },
                 style: ButtonStyle(
-                  padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+                  padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                       const EdgeInsets.all(8)),
-                  fixedSize: WidgetStateProperty.all<Size>(
+                  fixedSize: MaterialStateProperty.all<Size>(
                       Size(size.width * 0.75, 55)),
-                  backgroundColor: WidgetStateProperty.all<Color>(
+                  backgroundColor: MaterialStateProperty.all<Color>(
                       ColorPalette.primaryColor),
-                  side: WidgetStateProperty.all<BorderSide>(
+                  side: MaterialStateProperty.all<BorderSide>(
                       const BorderSide(color: Colors.white, width: 1)),
-                  shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                  shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(40),
                     ),
@@ -835,13 +835,13 @@ class _ReadSubPageState extends State<ReadSubPage> {
                         curve: Curves.easeInOut);
                   },
                   style: ButtonStyle(
-                    padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+                    padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                         const EdgeInsets.all(8)),
-                    fixedSize: WidgetStateProperty.all<Size>(
+                    fixedSize: MaterialStateProperty.all<Size>(
                         Size(size.width * 0.27, 36)),
                     backgroundColor:
-                        WidgetStateProperty.all<Color>(getItemColor(index)),
-                    shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                        MaterialStateProperty.all<Color>(getItemColor(index)),
+                    shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                       RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -865,15 +865,15 @@ class _ReadSubPageState extends State<ReadSubPage> {
             Navigator.pop(context);
           },
           style: ButtonStyle(
-            padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+            padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                 const EdgeInsets.all(8)),
             fixedSize:
-                WidgetStateProperty.all<Size>(Size(size.width * 0.75, 55)),
+                MaterialStateProperty.all<Size>(Size(size.width * 0.75, 55)),
             backgroundColor:
-                WidgetStateProperty.all<Color>(ColorPalette.primaryColor),
-            side: WidgetStateProperty.all<BorderSide>(
+                MaterialStateProperty.all<Color>(ColorPalette.primaryColor),
+            side: MaterialStateProperty.all<BorderSide>(
                 const BorderSide(color: Colors.white, width: 1)),
-            shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
               RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(40),
               ),

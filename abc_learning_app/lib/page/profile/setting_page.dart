@@ -210,12 +210,13 @@ class _SettingPageState extends State<SettingPage> {
                   children: [
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 5),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 5),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Dark Mode', style: TextStyles.nameFunction),
+                          const Text('Dark Mode',
+                              style: TextStyles.nameFunction),
                           CupertinoSwitch(
                             value: isDarkMode,
                             onChanged: (value) {
@@ -230,10 +231,11 @@ class _SettingPageState extends State<SettingPage> {
                     ),
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 10),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 7),
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(Radius.circular(20)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20)),
                         color: isNotification
                             ? ColorPalette.itemBackground.withOpacity(0.5)
                             : Colors.transparent,
@@ -289,10 +291,11 @@ class _SettingPageState extends State<SettingPage> {
                     ),
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 10),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 7),
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(Radius.circular(20)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20)),
                         color: isTextSize
                             ? ColorPalette.itemBackground.withOpacity(0.5)
                             : Colors.transparent,
@@ -302,7 +305,8 @@ class _SettingPageState extends State<SettingPage> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Text Size', style: TextStyles.nameFunction),
+                              const Text('Text Size',
+                                  style: TextStyles.nameFunction),
                               GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -335,18 +339,18 @@ class _SettingPageState extends State<SettingPage> {
                                     },
                                     style: ButtonStyle(
                                       backgroundColor:
-                                          WidgetStateProperty.all(
+                                          MaterialStateProperty.all(
                                         textSize == 'Small'
                                             ? ColorPalette.primaryColor
                                             : Colors.white,
                                       ),
-                                      fixedSize: WidgetStateProperty.all(
+                                      fixedSize: MaterialStateProperty.all(
                                         Size(size.width * 0.18, 35),
                                       ),
-                                      padding: WidgetStateProperty.all(
+                                      padding: MaterialStateProperty.all(
                                         const EdgeInsets.all(0),
                                       ),
-                                      shape: WidgetStateProperty.all<
+                                      shape: MaterialStateProperty.all<
                                           RoundedRectangleBorder>(
                                         RoundedRectangleBorder(
                                           borderRadius:
@@ -371,18 +375,18 @@ class _SettingPageState extends State<SettingPage> {
                                     },
                                     style: ButtonStyle(
                                       backgroundColor:
-                                          WidgetStateProperty.all(
+                                          MaterialStateProperty.all(
                                         textSize == 'Medium'
                                             ? ColorPalette.primaryColor
                                             : Colors.white,
                                       ),
-                                      fixedSize: WidgetStateProperty.all(
+                                      fixedSize: MaterialStateProperty.all(
                                         Size(size.width * 0.18, 35),
                                       ),
-                                      padding: WidgetStateProperty.all(
+                                      padding: MaterialStateProperty.all(
                                         const EdgeInsets.all(0),
                                       ),
-                                      shape: WidgetStateProperty.all<
+                                      shape: MaterialStateProperty.all<
                                           RoundedRectangleBorder>(
                                         RoundedRectangleBorder(
                                           borderRadius:
@@ -407,18 +411,18 @@ class _SettingPageState extends State<SettingPage> {
                                     },
                                     style: ButtonStyle(
                                       backgroundColor:
-                                          WidgetStateProperty.all(
+                                          MaterialStateProperty.all(
                                         textSize == 'Large'
                                             ? ColorPalette.primaryColor
                                             : Colors.white,
                                       ),
-                                      fixedSize: WidgetStateProperty.all(
+                                      fixedSize: MaterialStateProperty.all(
                                         Size(size.width * 0.18, 35),
                                       ),
-                                      padding: WidgetStateProperty.all(
+                                      padding: MaterialStateProperty.all(
                                         const EdgeInsets.all(0),
                                       ),
-                                      shape: WidgetStateProperty.all<
+                                      shape: MaterialStateProperty.all<
                                           RoundedRectangleBorder>(
                                         RoundedRectangleBorder(
                                           borderRadius:
@@ -444,10 +448,11 @@ class _SettingPageState extends State<SettingPage> {
                     ),
                     Container(
                       margin: const EdgeInsets.symmetric(vertical: 10),
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 15, vertical: 7),
                       decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.all(Radius.circular(20)),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(20)),
                         color: isSound
                             ? ColorPalette.itemBackground.withOpacity(0.5)
                             : Colors.transparent,
@@ -551,8 +556,8 @@ class _SettingPageState extends State<SettingPage> {
                     GestureDetector(
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 10),
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 7),
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -570,8 +575,8 @@ class _SettingPageState extends State<SettingPage> {
                     GestureDetector(
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 10),
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 15, vertical: 7),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 7),
                         child: const Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [

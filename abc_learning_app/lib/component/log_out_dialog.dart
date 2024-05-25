@@ -40,14 +40,14 @@ class LogOutDialog extends StatelessWidget {
                   Navigator.of(context).pushNamed(StarterPage.routeName));
             },
             style: ButtonStyle(
-              padding: WidgetStateProperty.all<EdgeInsetsGeometry>(
+              padding: MaterialStateProperty.all<EdgeInsetsGeometry>(
                   const EdgeInsets.all(8)),
-              fixedSize: WidgetStateProperty.all<Size>(
+              fixedSize: MaterialStateProperty.all<Size>(
                   Size(MediaQuery.of(context).size.width * 0.8, 55)),
-              backgroundColor: WidgetStateProperty.all<Color>(Colors.red),
-              side: WidgetStateProperty.all<BorderSide>(
+              backgroundColor: MaterialStateProperty.all<Color>(Colors.red),
+              side: MaterialStateProperty.all<BorderSide>(
                   const BorderSide(color: Colors.white, width: 1)),
-              shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+              shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                 RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(40),
                 ),
