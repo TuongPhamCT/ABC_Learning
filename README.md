@@ -139,7 +139,7 @@ Hoàn thiện 2 kĩ năng cơ bản nghe, đọc.
 4. Trong dự án, chạy các lệnh sau để khởi chạy những thư viện cần thiết:
    
 + flutter pub get
-5. Run the app by clicking the "Run" button in your ID Chạy ứng dụng bằng cách nháy chọn nút "Run" trên IDE của bạn.
+5. Chạy ứng dụng bằng cách nháy chọn nút "Run" trên IDE của bạn.
   Ứng dụng sẽ được chạy trên thiết bị (thật hoặc ảo) của bạn.
 
 <div id="Tacgia"></div>
