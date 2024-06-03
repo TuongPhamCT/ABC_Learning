@@ -125,13 +125,13 @@ Hoàn thiện 2 kĩ năng cơ bản nghe, đọc.
 <div id="CaiDat"></div>
 
 ## III. Hướng dẫn cài đặt
-### Requirements
+### Yêu cầu
 
 * Flutter SDK
 * Dart SDK
 * A code editor (e.g. Visual Studio Code, IntelliJ IDEA)
 
-### Installation
+### Cài Đặt
 
 1. Tải Flutter SDK từ [the Flutter website](https://flutter.dev/sdk/).
 2. Cài đặt Dart SDK từ [the Dart website](https://dart.dev/get-dart).
