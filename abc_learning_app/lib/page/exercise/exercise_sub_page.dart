@@ -167,70 +167,60 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
   }
 
   //Trang thu 3
+  //Trang bai tap thu 3
+  //Noi tu va hinh anh
+  // Position and selection variables
+  List<Map<String, Offset>> selectedPairs = [];
   String selectedWord = '';
-  Offset selectedImagePosition = Offset.zero;
   Offset selectedWordPosition = Offset.zero;
-
-  List<String> words = ['Apple', 'Banana', 'Orange'];
-  List<GlobalKey> imageKeys = [
-    GlobalKey(),
-    GlobalKey(),
-    GlobalKey(),
-  ];
-  List<GlobalKey> wordKeys = [
-    GlobalKey(),
-    GlobalKey(),
-    GlobalKey(),
-  ];
+  Offset selectedImagePosition = Offset.zero;
 
   void updateSelectedWord(String word, Offset position) {
     setState(() {
       selectedWord = word;
       selectedWordPosition = position;
+      if (selectedImagePosition != Offset.zero) {
+        addPair();
+      }
     });
   }
 
   void updateSelectedImage(Offset position) {
     setState(() {
       selectedImagePosition = position;
+      if (selectedWord.isNotEmpty) {
+        addPair();
+      }
     });
   }
 
-  Offset getPosition(GlobalKey key) {
-    final RenderBox renderBox =
-        key.currentContext?.findRenderObject() as RenderBox;
-    return renderBox.localToGlobal(Offset.zero);
+  void addPair() {
+    setState(() {
+      if (selectedWord.isNotEmpty && selectedImagePosition != Offset.zero) {
+        // Check if the word or image is already connected
+        bool wordConnected =
+            selectedPairs.any((pair) => pair['word'] == selectedWordPosition);
+        bool imageConnected =
+            selectedPairs.any((pair) => pair['image'] == selectedImagePosition);
+
+        if (!wordConnected && !imageConnected) {
+          selectedPairs.add({
+            'word': selectedWordPosition,
+            'image': selectedImagePosition,
+          });
+        }
+
+        selectedWord = '';
+        selectedWordPosition = Offset.zero;
+        selectedImagePosition = Offset.zero;
+      }
+    });
   }
 
-  //Trang bai tap thu 3
-  //Noi tu va hinh anh
-  String answer1 = '1A';
-  String answer2 = '2B';
-  String answer3 = '3C';
-
-  String selectedAnswer1 = '';
-  String selectedAnswer2 = '';
-  String selectedAnswer3 = '';
-
-  String selectedLetter1 = '';
-  String selectedLetter2 = '';
-  String selectedLetter3 = '';
-
-  bool isButtonOneSelected = false;
-  bool isButtonTwoSelected = false;
-  bool isButtonThreeSelected = false;
-
-  bool isLetterOneSelected = false;
-  bool isLetterTwoSelected = false;
-  bool isLetterThreeSelected = false;
-
-  String currentImage = '';
-  String currentWord = '';
-
   bool checkAnswer = false;
+  //
   String answer = '';
   String selectedAnswer = '';
-  String trueAnswer = 'Elephant';
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -289,6 +279,20 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
               return Text('Document does not exist');
             } else {
               var unitData = snapshot.data!.data() as Map<String, dynamic>;
+              bool checkAllPairsCorrect(List<Map<String, Offset>> selectedPairs,
+                  Map<String, dynamic> options) {
+                // Lặp qua tất cả các cặp đã chọn
+                for (var option in options.values) {
+                  // Kiểm tra xem mỗi cặp có trong selectedPairs không
+                  if (!selectedPairs.any((pair) =>
+                      pair['word'] == option['description'] &&
+                      pair['image'] == option['imgUrl'])) {
+                    return false; // Nếu thiếu ít nhất một cặp, trả về false
+                  }
+                }
+                return true; // Nếu tất cả các cặp đều được chọn đúng, trả về true
+              }
+
               String wordFromFirebase = unitData['question_2']['answer'];
               _initializeWordData(wordFromFirebase);
               return Container(
@@ -1000,9 +1004,10 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                               children: [
                                 const Gap(20),
                                 Text(
-                                  'Matching',
+                                  '${snapshot.data!.get('question_3')['title']}',
                                   style: TextStyles.titlePage
                                       .copyWith(color: Colors.black),
+                                  textAlign: TextAlign.center,
                                 ),
                                 const Gap(45),
                                 Row(
@@ -1010,32 +1015,43 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     GestureDetector(
-                                      onTap: checkAnswer
-                                          ? null
-                                          : () {
-                                              setState(() {
-                                                selectedAnswer1 = '';
-                                                isButtonOneSelected = true;
-                                              });
-                                            },
-                                      child: Image.asset(
-                                        AssetHelper.ggAvatar,
+                                      onTap: () {
+                                        if (selectedWord.isNotEmpty) {
+                                          updateSelectedImage(
+                                              Offset(size.width / 6 - 20, 5));
+                                        }
+                                      },
+                                      child: Image.network(
+                                        '${snapshot.data!.get('question_3')['option_1']['imgUrl']}',
                                         width: size.width / 3 - 40,
                                         fit: BoxFit.cover,
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap: checkAnswer ? null : () {},
-                                      child: Image.asset(
-                                        AssetHelper.googleLogo,
+                                      onTap: () {
+                                        if (selectedWord.isNotEmpty) {
+                                          updateSelectedImage(
+                                              Offset(size.width / 2 - 24, 5));
+                                        }
+                                      },
+                                      child: Image.network(
+                                        '${snapshot.data!.get('question_3')['option_2']['imgUrl']}',
                                         width: size.width / 3 - 40,
                                         fit: BoxFit.cover,
                                       ),
                                     ),
                                     GestureDetector(
-                                      onTap: checkAnswer ? null : () {},
-                                      child: Image.asset(
-                                        AssetHelper.home,
+                                      onTap: () {
+                                        if (selectedWord.isNotEmpty) {
+                                          updateSelectedImage(Offset(
+                                              size.width -
+                                                  48 -
+                                                  (size.width / 6 - 20),
+                                              5));
+                                        }
+                                      },
+                                      child: Image.network(
+                                        '${snapshot.data!.get('question_3')['option_3']['imgUrl']}',
                                         width: size.width / 3 - 40,
                                         fit: BoxFit.cover,
                                       ),
@@ -1047,125 +1063,28 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                   width: size.width,
                                   child: Stack(
                                     children: [
-                                      //Hinh anh thu nhat
-                                      Visibility(
-                                        child: CustomPaint(
+                                      for (var pair in selectedPairs)
+                                        CustomPaint(
                                           painter: LinePainter(
+                                            startPosition: pair['word']!,
+                                            endPosition: pair['image']!,
+                                          ),
+                                        ),
+                                      if (selectedWord.isNotEmpty &&
+                                          selectedImagePosition != Offset.zero)
+                                        CustomPaint(
+                                          painter: LinePainter(
+                                            // Kiểm tra xem điểm bắt đầu là từ hay ảnh
                                             startPosition:
-                                                Offset(size.width / 6 - 20, 5),
-                                            endPosition: Offset(
-                                                size.width / 6 - 20,
-                                                size.height * 0.245),
+                                                selectedWord.isNotEmpty
+                                                    ? selectedWordPosition
+                                                    : selectedImagePosition,
+                                            // Kiểm tra xem điểm kết thúc là từ hay ảnh
+                                            endPosition: selectedWord.isNotEmpty
+                                                ? selectedImagePosition
+                                                : selectedWordPosition,
                                           ),
                                         ),
-                                      ),
-                                      Visibility(
-                                        child: CustomPaint(
-                                          painter: LinePainter(
-                                            startPosition:
-                                                Offset(size.width / 6 - 20, 5),
-                                            endPosition: Offset(
-                                                size.width / 2 - 24,
-                                                size.height * 0.245),
-                                          ),
-                                        ),
-                                      ),
-                                      Visibility(
-                                        child: CustomPaint(
-                                          painter: LinePainter(
-                                            startPosition:
-                                                Offset(size.width / 6 - 20, 5),
-                                            endPosition: Offset(
-                                                size.width -
-                                                    48 -
-                                                    (size.width / 6 - 20),
-                                                size.height * 0.245),
-                                          ),
-                                        ),
-                                      ),
-
-                                      //Hinh anh thu hai
-                                      Visibility(
-                                        child: CustomPaint(
-                                          painter: LinePainter(
-                                            startPosition:
-                                                Offset(size.width / 2 - 24, 5),
-                                            endPosition: Offset(
-                                                size.width / 6 - 20,
-                                                size.height * 0.245),
-                                          ),
-                                        ),
-                                      ),
-                                      Visibility(
-                                        child: CustomPaint(
-                                          painter: LinePainter(
-                                            startPosition:
-                                                Offset(size.width / 2 - 24, 5),
-                                            endPosition: Offset(
-                                                size.width / 2 - 24,
-                                                size.height * 0.245),
-                                          ),
-                                        ),
-                                      ),
-                                      Visibility(
-                                        child: CustomPaint(
-                                          painter: LinePainter(
-                                            startPosition:
-                                                Offset(size.width / 2 - 24, 5),
-                                            endPosition: Offset(
-                                                size.width -
-                                                    48 -
-                                                    (size.width / 6 - 20),
-                                                size.height * 0.245),
-                                          ),
-                                        ),
-                                      ),
-
-                                      //Hinh anh thu ba
-                                      Visibility(
-                                        child: CustomPaint(
-                                          painter: LinePainter(
-                                            startPosition: Offset(
-                                                size.width -
-                                                    48 -
-                                                    (size.width / 6 - 20),
-                                                5),
-                                            endPosition: Offset(
-                                                size.width / 6 - 20,
-                                                size.height * 0.245),
-                                          ),
-                                        ),
-                                      ),
-                                      Visibility(
-                                        child: CustomPaint(
-                                          painter: LinePainter(
-                                            startPosition: Offset(
-                                                size.width -
-                                                    48 -
-                                                    (size.width / 6 - 20),
-                                                5),
-                                            endPosition: Offset(
-                                                size.width / 2 - 24,
-                                                size.height * 0.245),
-                                          ),
-                                        ),
-                                      ),
-                                      Visibility(
-                                        child: CustomPaint(
-                                          painter: LinePainter(
-                                            startPosition: Offset(
-                                                size.width -
-                                                    48 -
-                                                    (size.width / 6 - 20),
-                                                5),
-                                            endPosition: Offset(
-                                                size.width -
-                                                    48 -
-                                                    (size.width / 6 - 20),
-                                                size.height * 0.245),
-                                          ),
-                                        ),
-                                      ),
                                     ],
                                   ),
                                 ),
@@ -1174,7 +1093,18 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     ElevatedButton(
-                                      onPressed: checkAnswer ? null : () {},
+                                      onPressed: () {
+                                        if (selectedImagePosition ==
+                                            Offset.zero) {
+                                          setState(() {
+                                            selectedWord =
+                                                '${snapshot.data!.get('question_3')['option_2']['description']}';
+                                            selectedWordPosition = Offset(
+                                                size.width / 6 - 20,
+                                                size.height * 0.245);
+                                          });
+                                        }
+                                      },
                                       style: ButtonStyle(
                                         shadowColor:
                                             MaterialStateProperty.all<Color>(
@@ -1202,12 +1132,23 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                             EdgeInsets.all(0)),
                                       ),
                                       child: Text(
-                                        'Lion',
+                                        '${snapshot.data!.get('question_3')['option_2']['description']}',
                                         style: TextStyles.storyAnswer,
                                       ),
                                     ),
                                     ElevatedButton(
-                                      onPressed: checkAnswer ? null : () {},
+                                      onPressed: () {
+                                        if (selectedImagePosition ==
+                                            Offset.zero) {
+                                          setState(() {
+                                            selectedWord =
+                                                '${snapshot.data!.get('question_3')['option_3']['description']}';
+                                            selectedWordPosition = Offset(
+                                                size.width / 2 - 24,
+                                                size.height * 0.245);
+                                          });
+                                        }
+                                      },
                                       style: ButtonStyle(
                                         shadowColor:
                                             MaterialStateProperty.all<Color>(
@@ -1235,12 +1176,25 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                             EdgeInsets.all(0)),
                                       ),
                                       child: Text(
-                                        'Rabbit',
+                                        '${snapshot.data!.get('question_3')['option_3']['description']}',
                                         style: TextStyles.storyAnswer,
                                       ),
                                     ),
                                     ElevatedButton(
-                                      onPressed: checkAnswer ? null : () {},
+                                      onPressed: () {
+                                        if (selectedImagePosition ==
+                                            Offset.zero) {
+                                          setState(() {
+                                            selectedWord =
+                                                '${snapshot.data!.get('question_3')['option_1']['description']}';
+                                            selectedWordPosition = Offset(
+                                                size.width -
+                                                    48 -
+                                                    (size.width / 6 - 20),
+                                                size.height * 0.245);
+                                          });
+                                        }
+                                      },
                                       style: ButtonStyle(
                                         padding: MaterialStateProperty.all<
                                                 EdgeInsetsGeometry>(
@@ -1268,14 +1222,17 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                         ),
                                       ),
                                       child: Text(
-                                        'Pig',
+                                        '${snapshot.data!.get('question_3')['option_1']['description']}',
                                         style: TextStyles.storyAnswer,
                                       ),
                                     ),
                                   ],
                                 ),
-                                Expanded(child: Container()),
-                                if (checkAnswer)
+                                if (checkAllPairsCorrect(
+                                        selectedPairs,
+                                        snapshot.data!
+                                            .get('question_3')['option']) ==
+                                    true)
                                   if (false)
                                     Column(
                                       crossAxisAlignment:
