@@ -105,8 +105,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
     final exerciseDocs = await fetchExerciseDocuments(unitsId);
     if (exerciseDocs.isNotEmpty) {
       final docRef = exerciseDocs.first.reference;
-      final listeningData = exerciseDocs.first.data() as Map<String, dynamic>;
-      int currentIndex = listeningData['currentIndex'];
+      final exerciseData = exerciseDocs.first.data() as Map<String, dynamic>;
+      int currentIndex = exerciseData['currentIndex'];
 
       if (newCorrectAnswers > currentIndex) {
         await docRef.update({'currentIndex': newCorrectAnswers});
@@ -125,6 +125,30 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
       return querySnapshot.docs.first.id;
     } else {
       return null;
+    }
+  }
+
+  Stream<List<Map<String, dynamic>>> fetchResults(
+      String email, String unitId) async* {
+    final String? userId = await fetchUserIdByEmail(email);
+    if (userId != null) {
+      final DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('results')
+          .doc('${userId}_$unitId')
+          .get();
+      if (snapshot.exists) {
+        final results = List<Map<String, dynamic>>.from(snapshot['results']);
+        int correctAnswers =
+            results.where((result) => result['is_correct']).length;
+
+        await updateCurrentIndexIfNeeded(unitId, correctAnswers);
+
+        yield results;
+      } else {
+        yield [];
+      }
+    } else {
+      yield [];
     }
   }
 
@@ -170,8 +194,10 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
   //Trang bai tap thu 3
   //Noi tu va hinh anh
   // Position and selection variables
-  List<Map<String, Offset>> selectedPairs = [];
+  final List<Map<String, Offset>> selectedPairs = [];
+  final List<Map<String, String>> table = [];
   String selectedWord = '';
+  String selectedImage = '';
   Offset selectedWordPosition = Offset.zero;
   Offset selectedImagePosition = Offset.zero;
 
@@ -185,8 +211,9 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
     });
   }
 
-  void updateSelectedImage(Offset position) {
+  void updateSelectedImage(String image, Offset position) {
     setState(() {
+      selectedImage = image; // Cập nhật URL hình ảnh đã chọn
       selectedImagePosition = position;
       if (selectedWord.isNotEmpty) {
         addPair();
@@ -198,23 +225,68 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
     setState(() {
       if (selectedWord.isNotEmpty && selectedImagePosition != Offset.zero) {
         // Check if the word or image is already connected
-        bool wordConnected =
-            selectedPairs.any((pair) => pair['word'] == selectedWordPosition);
-        bool imageConnected =
-            selectedPairs.any((pair) => pair['image'] == selectedImagePosition);
+        bool alreadyConnected = selectedPairs.any((pair) =>
+            (pair['word'] == selectedWordPosition ||
+                pair['image'] == selectedImagePosition));
 
-        if (!wordConnected && !imageConnected) {
+        if (!alreadyConnected) {
           selectedPairs.add({
             'word': selectedWordPosition,
             'image': selectedImagePosition,
           });
+          // Save the data to the table for checking correctness
+          table.add({'description': selectedWord, 'imgUrl': selectedImage});
         }
 
         selectedWord = '';
+        selectedImage = '';
         selectedWordPosition = Offset.zero;
         selectedImagePosition = Offset.zero;
       }
     });
+  }
+
+  bool checkAllPairsCorrect(
+      List<Map<String, String>> table, Map<String, dynamic> questionData) {
+    // Tạo một map các cặp đúng từ dữ liệu câu hỏi
+    Map<String, String> correctPairs = {
+      questionData['option_1']['description']: questionData['option_1']
+          ['imgUrl'],
+      questionData['option_2']['description']: questionData['option_2']
+          ['imgUrl'],
+      questionData['option_3']['description']: questionData['option_3']
+          ['imgUrl'],
+    };
+
+    // In ra các cặp đúng để kiểm tra
+    print("Correct pairs:");
+    correctPairs.forEach((desc, url) {
+      print('$desc -> $url');
+    });
+
+    // Kiểm tra số lượng cặp trong bảng table
+    if (table == null || table.length != correctPairs.length) {
+      print(
+          'Mismatch in the number of pairs. Expected: ${correctPairs.length}, but found: ${table.length}');
+      return false;
+    }
+
+    // In ra các cặp đã chọn để kiểm tra
+    print("Selected pairs in table:");
+    for (var pair in table) {
+      if (pair == null) {
+        return false;
+      }
+      print(
+          'Description: ${pair['description']}, Image URL: ${pair['imgUrl']}');
+      if (correctPairs[pair['description']] != pair['imgUrl']) {
+        print('Mismatch found: ${pair['description']} -> ${pair['imgUrl']}');
+        return false;
+      }
+    }
+
+    // Nếu tất cả các cặp đều đúng và số lượng cặp khớp
+    return true;
   }
 
   bool checkAnswer = false;
@@ -272,27 +344,13 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
           future: _unitDocument,
           builder: (context, AsyncSnapshot<DocumentSnapshot> snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return CircularProgressIndicator();
+              return const CircularProgressIndicator();
             } else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
             } else if (snapshot.data == null || !snapshot.data!.exists) {
-              return Text('Document does not exist');
+              return const Text('Document does not exist');
             } else {
               var unitData = snapshot.data!.data() as Map<String, dynamic>;
-              bool checkAllPairsCorrect(List<Map<String, Offset>> selectedPairs,
-                  Map<String, dynamic> options) {
-                // Lặp qua tất cả các cặp đã chọn
-                for (var option in options.values) {
-                  // Kiểm tra xem mỗi cặp có trong selectedPairs không
-                  if (!selectedPairs.any((pair) =>
-                      pair['word'] == option['description'] &&
-                      pair['image'] == option['imgUrl'])) {
-                    return false; // Nếu thiếu ít nhất một cặp, trả về false
-                  }
-                }
-                return true; // Nếu tất cả các cặp đều được chọn đúng, trả về true
-              }
-
               String wordFromFirebase = unitData['question_2']['answer'];
               _initializeWordData(wordFromFirebase);
               return Container(
@@ -318,11 +376,11 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.15),
                                   blurRadius: 20,
-                                  offset: Offset(0, 8),
+                                  offset: const Offset(0, 8),
                                 ),
                               ],
                             ),
-                            child: Icon(
+                            child: const Icon(
                               FontAwesomeIcons.angleLeft,
                               color: Colors.black,
                             ),
@@ -333,7 +391,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                           width: size.width * 0.6,
                           alignment: Alignment.center,
                           child: ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
+                            physics: const NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             scrollDirection: Axis.horizontal,
                             itemCount: 6,
@@ -362,7 +420,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.15),
                                 blurRadius: 20,
-                                offset: Offset(0, 8),
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
@@ -372,7 +430,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                             itemBuilder: (context) => [
                               PopupMenuItem(
                                 onTap: () {},
-                                padding: EdgeInsets.all(5),
+                                padding: const EdgeInsets.all(5),
                                 height: 42,
                                 value: 'item1',
                                 child: Container(
@@ -386,7 +444,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.15),
                                         blurRadius: 20,
-                                        offset: Offset(0, 8),
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
                                   ),
@@ -399,7 +457,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                 ),
                               ),
                               PopupMenuItem(
-                                padding: EdgeInsets.all(5),
+                                padding: const EdgeInsets.all(5),
                                 height: 42,
                                 value: 'item2',
                                 child: Container(
@@ -413,7 +471,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.15),
                                         blurRadius: 20,
-                                        offset: Offset(0, 8),
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
                                   ),
@@ -427,7 +485,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                 ),
                               ),
                               PopupMenuItem(
-                                padding: EdgeInsets.all(5),
+                                padding: const EdgeInsets.all(5),
                                 height: 42,
                                 value: 'item3',
                                 child: Container(
@@ -441,7 +499,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       BoxShadow(
                                         color: Colors.black.withOpacity(0.15),
                                         blurRadius: 20,
-                                        offset: Offset(0, 8),
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
                                   ),
@@ -455,7 +513,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                 ),
                               ),
                             ],
-                            child: Icon(
+                            child: const Icon(
                               Icons.menu,
                               color: Colors.black,
                             ),
@@ -466,7 +524,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                     const Gap(10),
                     Expanded(
                       child: PageView(
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         controller: _pageController,
                         children: [
                           //Trang dau tien
@@ -519,7 +577,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                           style: TextStyles.questionResult,
                                         ),
                                         const Gap(5),
-                                        Text(
+                                        const Text(
                                           'Answer:',
                                           style: TextStyles.questionLabel,
                                         ),
@@ -537,8 +595,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                           child: ElevatedButton(
                                             onPressed: () {
                                               _pageController.nextPage(
-                                                duration:
-                                                    Duration(milliseconds: 300),
+                                                duration: const Duration(
+                                                    milliseconds: 300),
                                                 curve: Curves.easeInOut,
                                               );
                                               setState(() {
@@ -549,7 +607,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                             style: ButtonStyle(
                                               padding: MaterialStateProperty
                                                   .all<EdgeInsetsGeometry>(
-                                                      EdgeInsets.all(8)),
+                                                      const EdgeInsets.all(8)),
                                               fixedSize: MaterialStateProperty
                                                   .all<Size>(Size(
                                                       size.width * 0.75, 55)),
@@ -564,7 +622,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                 ),
                                               ),
                                             ),
-                                            child: Text('Next Question',
+                                            child: const Text('Next Question',
                                                 style:
                                                     TextStyles.loginButtonText),
                                           ),
@@ -618,8 +676,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                           child: ElevatedButton(
                                             onPressed: () {
                                               _pageController.nextPage(
-                                                duration:
-                                                    Duration(milliseconds: 300),
+                                                duration: const Duration(
+                                                    milliseconds: 300),
                                                 curve: Curves.easeInOut,
                                               );
                                               setState(() {
@@ -630,7 +688,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                             style: ButtonStyle(
                                               padding: MaterialStateProperty
                                                   .all<EdgeInsetsGeometry>(
-                                                      EdgeInsets.all(8)),
+                                                      const EdgeInsets.all(8)),
                                               fixedSize: MaterialStateProperty
                                                   .all<Size>(Size(
                                                       size.width * 0.75, 55)),
@@ -645,7 +703,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                 ),
                                               ),
                                             ),
-                                            child: Text('Next Question',
+                                            child: const Text('Next Question',
                                                 style:
                                                     TextStyles.loginButtonText),
                                           ),
@@ -655,21 +713,64 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                   )
                               else
                                 ElevatedButton(
-                                  onPressed: () {
+                                  onPressed: () async {
                                     setState(() {
                                       checkAnswer = true;
                                     });
+                                    if (textController.text
+                                            .trim()
+                                            .toLowerCase() ==
+                                        '${snapshot.data!.get('question_1')['answer']}'
+                                            .trim()
+                                            .toLowerCase()) {
+                                      bool isCorrect = true;
+                                      if (email != null) {
+                                        final String? userId =
+                                            await fetchUserIdByEmail(email!);
+                                        if (userId != null) {
+                                          await updateResult(
+                                            userId,
+                                            widget.unitsId,
+                                            'question_1', // Thay thế bằng questionId thực tế
+                                            isCorrect,
+                                          );
+                                        } else {
+                                          print('User ID not found');
+                                        }
+                                      } else {
+                                        print('User is not logged in');
+                                      }
+                                    } else {
+                                      bool isCorrect = false;
+                                      if (email != null) {
+                                        final String? userId =
+                                            await fetchUserIdByEmail(email!);
+                                        if (userId != null) {
+                                          await updateResult(
+                                            userId,
+                                            widget.unitsId,
+                                            'question_1', // Thay thế bằng questionId thực tế
+                                            isCorrect,
+                                          );
+                                        } else {
+                                          print('User ID not found');
+                                        }
+                                      } else {
+                                        print('User is not logged in');
+                                      }
+                                    }
                                   },
                                   style: ButtonStyle(
                                     padding: MaterialStateProperty.all<
-                                        EdgeInsetsGeometry>(EdgeInsets.all(8)),
+                                            EdgeInsetsGeometry>(
+                                        const EdgeInsets.all(8)),
                                     fixedSize: MaterialStateProperty.all<Size>(
                                         Size(size.width * 0.75, 55)),
                                     backgroundColor:
                                         MaterialStateProperty.all<Color>(
                                             ColorPalette.primaryColor),
                                     side: MaterialStateProperty.all<BorderSide>(
-                                        BorderSide(
+                                        const BorderSide(
                                             color: Colors.white, width: 1)),
                                     shape: MaterialStateProperty.all<
                                         RoundedRectangleBorder>(
@@ -678,12 +779,13 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       ),
                                     ),
                                   ),
-                                  child: Text('Check Answer',
+                                  child: const Text('Check Answer',
                                       style: TextStyles.loginButtonText),
                                 ),
                               const Gap(15),
                             ],
                           ),
+
                           //Trang thu hai
                           //Ghep tu
                           SingleChildScrollView(
@@ -772,7 +874,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                               onPressed: checkAnswer
                                                   ? null
                                                   : deleteCharacter,
-                                              child: Text("Delete"),
+                                              child: const Text("Delete"),
                                             ),
                                           ],
                                         ),
@@ -811,12 +913,12 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            Text(
+                                            const Text(
                                               'That\'s right',
                                               style: TextStyles.questionResult,
                                             ),
                                             const Gap(5),
-                                            Text(
+                                            const Text(
                                               'Answer:',
                                               style: TextStyles.questionLabel,
                                             ),
@@ -834,7 +936,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                               child: ElevatedButton(
                                                 onPressed: () {
                                                   _pageController.nextPage(
-                                                    duration: Duration(
+                                                    duration: const Duration(
                                                         milliseconds: 300),
                                                     curve: Curves.easeInOut,
                                                   );
@@ -846,7 +948,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                 style: ButtonStyle(
                                                   padding: MaterialStateProperty
                                                       .all<EdgeInsetsGeometry>(
-                                                          EdgeInsets.all(8)),
+                                                          const EdgeInsets.all(
+                                                              8)),
                                                   fixedSize:
                                                       MaterialStateProperty
                                                           .all<Size>(Size(
@@ -865,7 +968,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                     ),
                                                   ),
                                                 ),
-                                                child: Text('Next Question',
+                                                child: const Text(
+                                                    'Next Question',
                                                     style: TextStyles
                                                         .loginButtonText),
                                               ),
@@ -920,7 +1024,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                               child: ElevatedButton(
                                                 onPressed: () {
                                                   _pageController.nextPage(
-                                                    duration: Duration(
+                                                    duration: const Duration(
                                                         milliseconds: 300),
                                                     curve: Curves.easeInOut,
                                                   );
@@ -932,7 +1036,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                 style: ButtonStyle(
                                                   padding: MaterialStateProperty
                                                       .all<EdgeInsetsGeometry>(
-                                                          EdgeInsets.all(8)),
+                                                          const EdgeInsets.all(
+                                                              8)),
                                                   fixedSize:
                                                       MaterialStateProperty
                                                           .all<Size>(Size(
@@ -951,7 +1056,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                     ),
                                                   ),
                                                 ),
-                                                child: Text('Next Question',
+                                                child: const Text(
+                                                    'Next Question',
                                                     style: TextStyles
                                                         .loginButtonText),
                                               ),
@@ -961,10 +1067,486 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       )
                                   else
                                     ElevatedButton(
-                                      onPressed: () {
+                                      onPressed: () async {
                                         setState(() {
                                           checkAnswer = true;
                                         });
+                                        if (wordController.text
+                                                .trim()
+                                                .toUpperCase() ==
+                                            '${snapshot.data!.get('question_2')['answer']}'
+                                                .trim()
+                                                .toUpperCase()) {
+                                          bool isCorrect = true;
+                                          if (email != null) {
+                                            final String? userId =
+                                                await fetchUserIdByEmail(
+                                                    email!);
+                                            if (userId != null) {
+                                              await updateResult(
+                                                userId,
+                                                widget.unitsId,
+                                                'question_2', // Thay thế bằng questionId thực tế
+                                                isCorrect,
+                                              );
+                                            } else {
+                                              print('User ID not found');
+                                            }
+                                          } else {
+                                            print('User is not logged in');
+                                          }
+                                        } else {
+                                          bool isCorrect = false;
+                                          if (email != null) {
+                                            final String? userId =
+                                                await fetchUserIdByEmail(
+                                                    email!);
+                                            if (userId != null) {
+                                              await updateResult(
+                                                userId,
+                                                widget.unitsId,
+                                                'question_2', // Thay thế bằng questionId thực tế
+                                                isCorrect,
+                                              );
+                                            } else {
+                                              print('User ID not found');
+                                            }
+                                          } else {
+                                            print('User is not logged in');
+                                          }
+                                        }
+                                      },
+                                      style: ButtonStyle(
+                                        padding: MaterialStateProperty.all<
+                                                EdgeInsetsGeometry>(
+                                            const EdgeInsets.all(8)),
+                                        fixedSize:
+                                            MaterialStateProperty.all<Size>(
+                                                Size(size.width * 0.75, 55)),
+                                        backgroundColor:
+                                            MaterialStateProperty.all<Color>(
+                                                ColorPalette.primaryColor),
+                                        side: MaterialStateProperty
+                                            .all<BorderSide>(const BorderSide(
+                                                color: Colors.white, width: 1)),
+                                        shape: MaterialStateProperty.all<
+                                            RoundedRectangleBorder>(
+                                          RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(40),
+                                          ),
+                                        ),
+                                      ),
+                                      child: const Text('Check Answer',
+                                          style: TextStyles.loginButtonText),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          //Trang thu ba
+                          //Bai tap noi cac tu va hinh anh
+                          Container(
+                            height: size.height - 145,
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const Gap(20),
+                                  Text(
+                                    '${snapshot.data!.get('question_3')['title']}',
+                                    style: TextStyles.titlePage
+                                        .copyWith(color: Colors.black),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const Gap(45),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      GestureDetector(
+                                        onTap: () {
+                                          if (selectedWord.isNotEmpty) {
+                                            updateSelectedImage(
+                                                '${snapshot.data!.get('question_3')['option_1']['imgUrl']}',
+                                                Offset(size.width / 6 - 20, 5));
+                                          }
+                                        },
+                                        child: Image.network(
+                                          '${snapshot.data!.get('question_3')['option_1']['imgUrl']}',
+                                          width: size.width / 3 - 40,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          if (selectedWord.isNotEmpty) {
+                                            updateSelectedImage(
+                                                '${snapshot.data!.get('question_3')['option_2']['imgUrl']}',
+                                                Offset(size.width / 2 - 24, 5));
+                                          }
+                                        },
+                                        child: Image.network(
+                                          '${snapshot.data!.get('question_3')['option_2']['imgUrl']}',
+                                          width: size.width / 3 - 40,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          if (selectedWord.isNotEmpty) {
+                                            updateSelectedImage(
+                                                '${snapshot.data!.get('question_3')['option_3']['imgUrl']}',
+                                                Offset(
+                                                    size.width -
+                                                        48 -
+                                                        (size.width / 6 - 20),
+                                                    5));
+                                          }
+                                        },
+                                        child: Image.network(
+                                          '${snapshot.data!.get('question_3')['option_3']['imgUrl']}',
+                                          width: size.width / 3 - 40,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    height: size.height * 0.25,
+                                    width: size.width,
+                                    child: Stack(
+                                      children: [
+                                        for (var pair in selectedPairs)
+                                          CustomPaint(
+                                            painter: LinePainter(
+                                              startPosition: pair['word']!,
+                                              endPosition: pair['image']!,
+                                            ),
+                                          ),
+                                        if (selectedWord.isNotEmpty &&
+                                            selectedImagePosition !=
+                                                Offset.zero)
+                                          CustomPaint(
+                                            painter: LinePainter(
+                                              // Kiểm tra xem điểm bắt đầu là từ hay ảnh
+                                              startPosition:
+                                                  selectedWordPosition,
+                                              // Kiểm tra xem điểm kết thúc là từ hay ảnh
+                                              endPosition:
+                                                  selectedImagePosition,
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          if (selectedImagePosition ==
+                                              Offset.zero) {
+                                            setState(() {
+                                              selectedWord =
+                                                  '${snapshot.data!.get('question_3')['option_2']['description']}';
+                                              selectedWordPosition = Offset(
+                                                  size.width / 6 - 20,
+                                                  size.height * 0.245);
+                                            });
+                                          }
+                                        },
+                                        style: ButtonStyle(
+                                          shadowColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  Colors.black
+                                                      .withOpacity(0.15)),
+                                          fixedSize: MaterialStateProperty.all<
+                                                  Size>(
+                                              Size(size.width / 3 - 40, 36)),
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  ColorPalette.primaryColor),
+                                          side: MaterialStateProperty
+                                              .all<BorderSide>(const BorderSide(
+                                                  color:
+                                                      ColorPalette.answerBorder,
+                                                  width: 1)),
+                                          shape: MaterialStateProperty.all<
+                                              RoundedRectangleBorder>(
+                                            RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          padding: MaterialStateProperty.all<
+                                                  EdgeInsetsGeometry>(
+                                              const EdgeInsets.all(0)),
+                                        ),
+                                        child: Text(
+                                          '${snapshot.data!.get('question_3')['option_2']['description']}',
+                                          style: TextStyles.storyAnswer,
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          if (selectedImagePosition ==
+                                              Offset.zero) {
+                                            setState(() {
+                                              selectedWord =
+                                                  '${snapshot.data!.get('question_3')['option_3']['description']}';
+                                              selectedWordPosition = Offset(
+                                                  size.width / 2 - 24,
+                                                  size.height * 0.245);
+                                            });
+                                          }
+                                        },
+                                        style: ButtonStyle(
+                                          shadowColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  Colors.black
+                                                      .withOpacity(0.15)),
+                                          fixedSize: MaterialStateProperty.all<
+                                                  Size>(
+                                              Size(size.width / 3 - 40, 36)),
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  ColorPalette.primaryColor),
+                                          side: MaterialStateProperty
+                                              .all<BorderSide>(const BorderSide(
+                                                  color:
+                                                      ColorPalette.answerBorder,
+                                                  width: 1)),
+                                          shape: MaterialStateProperty.all<
+                                              RoundedRectangleBorder>(
+                                            RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          padding: MaterialStateProperty.all<
+                                                  EdgeInsetsGeometry>(
+                                              const EdgeInsets.all(0)),
+                                        ),
+                                        child: Text(
+                                          '${snapshot.data!.get('question_3')['option_3']['description']}',
+                                          style: TextStyles.storyAnswer,
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          if (selectedImagePosition ==
+                                              Offset.zero) {
+                                            setState(() {
+                                              selectedWord =
+                                                  '${snapshot.data!.get('question_3')['option_1']['description']}';
+                                              selectedWordPosition = Offset(
+                                                  size.width -
+                                                      48 -
+                                                      (size.width / 6 - 20),
+                                                  size.height * 0.245);
+                                            });
+                                          }
+                                        },
+                                        style: ButtonStyle(
+                                          padding: MaterialStateProperty.all<
+                                                  EdgeInsetsGeometry>(
+                                              const EdgeInsets.all(0)),
+                                          shadowColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  Colors.black
+                                                      .withOpacity(0.15)),
+                                          fixedSize: MaterialStateProperty.all<
+                                                  Size>(
+                                              Size(size.width / 3 - 40, 36)),
+                                          backgroundColor:
+                                              MaterialStateProperty.all<Color>(
+                                                  ColorPalette.primaryColor),
+                                          side: MaterialStateProperty
+                                              .all<BorderSide>(const BorderSide(
+                                                  color:
+                                                      ColorPalette.answerBorder,
+                                                  width: 1)),
+                                          shape: MaterialStateProperty.all<
+                                              RoundedRectangleBorder>(
+                                            RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${snapshot.data!.get('question_3')['option_1']['description']}',
+                                          style: TextStyles.storyAnswer,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  if (checkAnswer)
+                                    if (checkAllPairsCorrect(table,
+                                        snapshot.data!.get('question_3')))
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            alignment: Alignment.center,
+                                            width: size.width,
+                                            height: 75,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.green.withOpacity(0.3),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Text(
+                                              'Excellent !',
+                                              style: TextStyles.result,
+                                            ),
+                                          ),
+                                          const Gap(15),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              _pageController.nextPage(
+                                                duration:
+                                                    Duration(milliseconds: 300),
+                                                curve: Curves.easeInOut,
+                                              );
+                                              setState(() {
+                                                cauHoi++;
+                                                checkAnswer = false;
+                                              });
+                                            },
+                                            style: ButtonStyle(
+                                              padding: MaterialStateProperty
+                                                  .all<EdgeInsetsGeometry>(
+                                                      EdgeInsets.all(8)),
+                                              fixedSize: MaterialStateProperty
+                                                  .all<Size>(Size(
+                                                      size.width * 0.75, 55)),
+                                              backgroundColor:
+                                                  MaterialStateProperty.all<
+                                                      Color>(Colors.green),
+                                              shape: MaterialStateProperty.all<
+                                                  RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(40),
+                                                ),
+                                              ),
+                                            ),
+                                            child: Text('Next Question',
+                                                style:
+                                                    TextStyles.loginButtonText),
+                                          ),
+                                        ],
+                                      )
+                                    else
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            alignment: Alignment.center,
+                                            width: size.width,
+                                            height: 75,
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.red.withOpacity(0.3),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                            child: Text(
+                                              'Wrong !',
+                                              style: TextStyles.result.copyWith(
+                                                color: Colors.red,
+                                              ),
+                                            ),
+                                          ),
+                                          const Gap(15),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              _pageController.nextPage(
+                                                duration:
+                                                    Duration(milliseconds: 300),
+                                                curve: Curves.easeInOut,
+                                              );
+                                              setState(() {
+                                                cauHoi++;
+                                                checkAnswer = false;
+                                              });
+                                            },
+                                            style: ButtonStyle(
+                                              padding: MaterialStateProperty
+                                                  .all<EdgeInsetsGeometry>(
+                                                      EdgeInsets.all(8)),
+                                              fixedSize: MaterialStateProperty
+                                                  .all<Size>(Size(
+                                                      size.width * 0.75, 55)),
+                                              backgroundColor:
+                                                  MaterialStateProperty.all<
+                                                      Color>(Colors.red),
+                                              shape: MaterialStateProperty.all<
+                                                  RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(40),
+                                                ),
+                                              ),
+                                            ),
+                                            child: Text('Next Question',
+                                                style:
+                                                    TextStyles.loginButtonText),
+                                          ),
+                                        ],
+                                      )
+                                  else
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        setState(() {
+                                          checkAnswer = true;
+                                        });
+                                        if (checkAllPairsCorrect(table,
+                                            snapshot.data!.get('question_3'))) {
+                                          bool isCorrect = true;
+                                          if (email != null) {
+                                            final String? userId =
+                                                await fetchUserIdByEmail(
+                                                    email!);
+                                            if (userId != null) {
+                                              await updateResult(
+                                                userId,
+                                                widget.unitsId,
+                                                'question_3', // Thay thế bằng questionId thực tế
+                                                isCorrect,
+                                              );
+                                            } else {
+                                              print('User ID not found');
+                                            }
+                                          } else {
+                                            print('User is not logged in');
+                                          }
+                                        } else {
+                                          bool isCorrect = false;
+                                          if (email != null) {
+                                            final String? userId =
+                                                await fetchUserIdByEmail(
+                                                    email!);
+                                            if (userId != null) {
+                                              await updateResult(
+                                                userId,
+                                                widget.unitsId,
+                                                'question_3', // Thay thế bằng questionId thực tế
+                                                isCorrect,
+                                              );
+                                            } else {
+                                              print('User ID not found');
+                                            }
+                                          } else {
+                                            print('User is not logged in');
+                                          }
+                                        }
                                       },
                                       style: ButtonStyle(
                                         padding: MaterialStateProperty.all<
@@ -990,567 +1572,293 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       child: Text('Check Answer',
                                           style: TextStyles.loginButtonText),
                                     ),
-                                ],
-                              ),
-                            ),
+                                ]),
                           ),
-
-                          //Trang thu ba
-                          //Bai tap noi cac tu va hinh anh
-                          Container(
-                            height: size.height - 145,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const Gap(20),
-                                Text(
-                                  '${snapshot.data!.get('question_3')['title']}',
-                                  style: TextStyles.titlePage
-                                      .copyWith(color: Colors.black),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const Gap(45),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        if (selectedWord.isNotEmpty) {
-                                          updateSelectedImage(
-                                              Offset(size.width / 6 - 20, 5));
-                                        }
-                                      },
-                                      child: Image.network(
-                                        '${snapshot.data!.get('question_3')['option_1']['imgUrl']}',
-                                        width: size.width / 3 - 40,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        if (selectedWord.isNotEmpty) {
-                                          updateSelectedImage(
-                                              Offset(size.width / 2 - 24, 5));
-                                        }
-                                      },
-                                      child: Image.network(
-                                        '${snapshot.data!.get('question_3')['option_2']['imgUrl']}',
-                                        width: size.width / 3 - 40,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        if (selectedWord.isNotEmpty) {
-                                          updateSelectedImage(Offset(
-                                              size.width -
-                                                  48 -
-                                                  (size.width / 6 - 20),
-                                              5));
-                                        }
-                                      },
-                                      child: Image.network(
-                                        '${snapshot.data!.get('question_3')['option_3']['imgUrl']}',
-                                        width: size.width / 3 - 40,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Container(
-                                  height: size.height * 0.25,
-                                  width: size.width,
-                                  child: Stack(
-                                    children: [
-                                      for (var pair in selectedPairs)
-                                        CustomPaint(
-                                          painter: LinePainter(
-                                            startPosition: pair['word']!,
-                                            endPosition: pair['image']!,
-                                          ),
-                                        ),
-                                      if (selectedWord.isNotEmpty &&
-                                          selectedImagePosition != Offset.zero)
-                                        CustomPaint(
-                                          painter: LinePainter(
-                                            // Kiểm tra xem điểm bắt đầu là từ hay ảnh
-                                            startPosition:
-                                                selectedWord.isNotEmpty
-                                                    ? selectedWordPosition
-                                                    : selectedImagePosition,
-                                            // Kiểm tra xem điểm kết thúc là từ hay ảnh
-                                            endPosition: selectedWord.isNotEmpty
-                                                ? selectedImagePosition
-                                                : selectedWordPosition,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        if (selectedImagePosition ==
-                                            Offset.zero) {
-                                          setState(() {
-                                            selectedWord =
-                                                '${snapshot.data!.get('question_3')['option_2']['description']}';
-                                            selectedWordPosition = Offset(
-                                                size.width / 6 - 20,
-                                                size.height * 0.245);
-                                          });
-                                        }
-                                      },
-                                      style: ButtonStyle(
-                                        shadowColor:
-                                            MaterialStateProperty.all<Color>(
-                                                Colors.black.withOpacity(0.15)),
-                                        fixedSize:
-                                            MaterialStateProperty.all<Size>(
-                                                Size(size.width / 3 - 40, 36)),
-                                        backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                ColorPalette.primaryColor),
-                                        side: MaterialStateProperty
-                                            .all<BorderSide>(BorderSide(
-                                                color:
-                                                    ColorPalette.answerBorder,
-                                                width: 1)),
-                                        shape: MaterialStateProperty.all<
-                                            RoundedRectangleBorder>(
-                                          RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        padding: MaterialStateProperty.all<
-                                                EdgeInsetsGeometry>(
-                                            EdgeInsets.all(0)),
-                                      ),
-                                      child: Text(
-                                        '${snapshot.data!.get('question_3')['option_2']['description']}',
-                                        style: TextStyles.storyAnswer,
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        if (selectedImagePosition ==
-                                            Offset.zero) {
-                                          setState(() {
-                                            selectedWord =
-                                                '${snapshot.data!.get('question_3')['option_3']['description']}';
-                                            selectedWordPosition = Offset(
-                                                size.width / 2 - 24,
-                                                size.height * 0.245);
-                                          });
-                                        }
-                                      },
-                                      style: ButtonStyle(
-                                        shadowColor:
-                                            MaterialStateProperty.all<Color>(
-                                                Colors.black.withOpacity(0.15)),
-                                        fixedSize:
-                                            MaterialStateProperty.all<Size>(
-                                                Size(size.width / 3 - 40, 36)),
-                                        backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                ColorPalette.primaryColor),
-                                        side: MaterialStateProperty
-                                            .all<BorderSide>(BorderSide(
-                                                color:
-                                                    ColorPalette.answerBorder,
-                                                width: 1)),
-                                        shape: MaterialStateProperty.all<
-                                            RoundedRectangleBorder>(
-                                          RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        padding: MaterialStateProperty.all<
-                                                EdgeInsetsGeometry>(
-                                            EdgeInsets.all(0)),
-                                      ),
-                                      child: Text(
-                                        '${snapshot.data!.get('question_3')['option_3']['description']}',
-                                        style: TextStyles.storyAnswer,
-                                      ),
-                                    ),
-                                    ElevatedButton(
-                                      onPressed: () {
-                                        if (selectedImagePosition ==
-                                            Offset.zero) {
-                                          setState(() {
-                                            selectedWord =
-                                                '${snapshot.data!.get('question_3')['option_1']['description']}';
-                                            selectedWordPosition = Offset(
-                                                size.width -
-                                                    48 -
-                                                    (size.width / 6 - 20),
-                                                size.height * 0.245);
-                                          });
-                                        }
-                                      },
-                                      style: ButtonStyle(
-                                        padding: MaterialStateProperty.all<
-                                                EdgeInsetsGeometry>(
-                                            EdgeInsets.all(0)),
-                                        shadowColor:
-                                            MaterialStateProperty.all<Color>(
-                                                Colors.black.withOpacity(0.15)),
-                                        fixedSize:
-                                            MaterialStateProperty.all<Size>(
-                                                Size(size.width / 3 - 40, 36)),
-                                        backgroundColor:
-                                            MaterialStateProperty.all<Color>(
-                                                ColorPalette.primaryColor),
-                                        side: MaterialStateProperty
-                                            .all<BorderSide>(BorderSide(
-                                                color:
-                                                    ColorPalette.answerBorder,
-                                                width: 1)),
-                                        shape: MaterialStateProperty.all<
-                                            RoundedRectangleBorder>(
-                                          RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                      ),
-                                      child: Text(
-                                        '${snapshot.data!.get('question_3')['option_1']['description']}',
-                                        style: TextStyles.storyAnswer,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                if (checkAllPairsCorrect(
-                                        selectedPairs,
-                                        snapshot.data!
-                                            .get('question_3')['option']) ==
-                                    true)
-                                  if (false)
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          alignment: Alignment.center,
-                                          width: size.width,
-                                          height: 75,
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Colors.green.withOpacity(0.3),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                          child: Text(
-                                            'Excellent !',
-                                            style: TextStyles.result,
-                                          ),
-                                        ),
-                                        const Gap(15),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            _pageController.nextPage(
-                                              duration:
-                                                  Duration(milliseconds: 300),
-                                              curve: Curves.easeInOut,
-                                            );
-                                            setState(() {
-                                              cauHoi++;
-                                              checkAnswer = false;
-                                            });
-                                          },
-                                          style: ButtonStyle(
-                                            padding: MaterialStateProperty.all<
-                                                    EdgeInsetsGeometry>(
-                                                EdgeInsets.all(8)),
-                                            fixedSize:
-                                                MaterialStateProperty.all<Size>(
-                                                    Size(
-                                                        size.width * 0.75, 55)),
-                                            backgroundColor:
-                                                MaterialStateProperty.all<
-                                                    Color>(Colors.green),
-                                            shape: MaterialStateProperty.all<
-                                                RoundedRectangleBorder>(
-                                              RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(40),
-                                              ),
-                                            ),
-                                          ),
-                                          child: Text('Next Question',
-                                              style:
-                                                  TextStyles.loginButtonText),
-                                        ),
-                                      ],
-                                    )
-                                  else
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Container(
-                                          alignment: Alignment.center,
-                                          width: size.width,
-                                          height: 75,
-                                          decoration: BoxDecoration(
-                                            color: Colors.red.withOpacity(0.3),
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                          child: Text(
-                                            'Wrong !',
-                                            style: TextStyles.result.copyWith(
-                                              color: Colors.red,
-                                            ),
-                                          ),
-                                        ),
-                                        const Gap(15),
-                                        ElevatedButton(
-                                          onPressed: () {
-                                            _pageController.nextPage(
-                                              duration:
-                                                  Duration(milliseconds: 300),
-                                              curve: Curves.easeInOut,
-                                            );
-                                            setState(() {
-                                              cauHoi++;
-                                              checkAnswer = false;
-                                            });
-                                          },
-                                          style: ButtonStyle(
-                                            padding: MaterialStateProperty.all<
-                                                    EdgeInsetsGeometry>(
-                                                EdgeInsets.all(8)),
-                                            fixedSize:
-                                                MaterialStateProperty.all<Size>(
-                                                    Size(
-                                                        size.width * 0.75, 55)),
-                                            backgroundColor:
-                                                MaterialStateProperty.all<
-                                                    Color>(Colors.red),
-                                            shape: MaterialStateProperty.all<
-                                                RoundedRectangleBorder>(
-                                              RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(40),
-                                              ),
-                                            ),
-                                          ),
-                                          child: Text('Next Question',
-                                              style:
-                                                  TextStyles.loginButtonText),
-                                        ),
-                                      ],
-                                    )
-                                else
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        checkAnswer = true;
-                                      });
-                                    },
-                                    style: ButtonStyle(
-                                      padding: MaterialStateProperty.all<
-                                              EdgeInsetsGeometry>(
-                                          EdgeInsets.all(8)),
-                                      fixedSize:
-                                          MaterialStateProperty.all<Size>(
-                                              Size(size.width * 0.75, 55)),
-                                      backgroundColor:
-                                          MaterialStateProperty.all<Color>(
-                                              ColorPalette.primaryColor),
-                                      side:
-                                          MaterialStateProperty.all<BorderSide>(
-                                              BorderSide(
-                                                  color: Colors.white,
-                                                  width: 1)),
-                                      shape: MaterialStateProperty.all<
-                                          RoundedRectangleBorder>(
-                                        RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(40),
-                                        ),
-                                      ),
-                                    ),
-                                    child: Text('Check Answer',
-                                        style: TextStyles.loginButtonText),
-                                  ),
-                              ],
-                            ),
-                          ),
-
                           //Trang thu tu
                           //Trang review
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                'Exercise',
-                                style: TextStyles.titlePage
-                                    .copyWith(color: Colors.black),
-                              ),
-                              const Gap(15),
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(7),
-                                  border: Border.all(
-                                    color: ColorPalette.itemBorder,
-                                    width: 1,
-                                  ),
-                                ),
-                                padding: EdgeInsets.all(15),
-                                margin: EdgeInsets.only(bottom: 20),
-                                child: Row(
-                                  children: [
-                                    Image.asset(
-                                      AssetHelper.itemListen,
-                                      width: 60,
-                                      height: 60,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    Gap(10),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Alphabet',
-                                          style: TextStyles.itemTitle,
-                                        ),
-                                        const Gap(12),
-                                        Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.end,
-                                          children: [
-                                            Container(
-                                              width: size.width - 185,
-                                              height: 10,
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(15),
-                                                child: LinearProgressIndicator(
-                                                  value: 9 / 50,
-                                                  backgroundColor: ColorPalette
-                                                      .progressbarbackground,
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation<
-                                                              Color>(
-                                                          ColorPalette
-                                                              .progressbarValue),
+                              StreamBuilder(
+                                stream: FirebaseFirestore.instance
+                                    .collection('exercises')
+                                    .where('units_id',
+                                        isEqualTo: widget.unitsId)
+                                    .snapshots(),
+                                builder: (context,
+                                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return Center(
+                                        child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return Center(
+                                        child:
+                                            Text('Error: ${snapshot.error}'));
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data!.docs.isEmpty) {
+                                    return Center(child: Text('No data found'));
+                                  } else {
+                                    var exerciseData = snapshot.data!.docs.first
+                                        .data() as Map<String, dynamic>;
+                                    int currentIndex =
+                                        exerciseData['currentIndex'];
+                                    int maxIndex = exerciseData['maxIndex'];
+                                    String title = exerciseData['title'];
+
+                                    return Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            'Exercises',
+                                            style: TextStyles.titlePage
+                                                .copyWith(color: Colors.black),
+                                          ),
+                                          const Gap(15),
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(7),
+                                              border: Border.all(
+                                                color: ColorPalette.itemBorder,
+                                                width: 1,
+                                              ),
+                                            ),
+                                            padding: EdgeInsets.all(15),
+                                            margin: EdgeInsets.only(bottom: 20),
+                                            child: Row(
+                                              children: [
+                                                Image.asset(
+                                                  AssetHelper.itemListen,
+                                                  width: 60,
+                                                  height: 60,
+                                                  fit: BoxFit.cover,
+                                                ),
+                                                Gap(10),
+                                                Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      title,
+                                                      style:
+                                                          TextStyles.itemTitle,
+                                                    ),
+                                                    const Gap(12),
+                                                    Row(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .end,
+                                                      children: [
+                                                        Container(
+                                                          width:
+                                                              size.width - 185,
+                                                          height: 10,
+                                                          child: ClipRRect(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        15),
+                                                            child:
+                                                                LinearProgressIndicator(
+                                                              value:
+                                                                  currentIndex /
+                                                                      maxIndex,
+                                                              backgroundColor:
+                                                                  ColorPalette
+                                                                      .progressbarbackground,
+                                                              valueColor:
+                                                                  AlwaysStoppedAnimation<
+                                                                          Color>(
+                                                                      ColorPalette
+                                                                          .progressbarValue),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        Gap(8),
+                                                        Text(
+                                                          '$currentIndex/$maxIndex',
+                                                          style: TextStyles
+                                                              .itemprogress,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          Expanded(child: Container()),
+                                          Container(
+                                            height: size.height * 0.5,
+                                            child: StreamBuilder(
+                                              stream: fetchResults(
+                                                  email!, widget.unitsId),
+                                              builder: (context,
+                                                  AsyncSnapshot<
+                                                          List<
+                                                              Map<String,
+                                                                  dynamic>>>
+                                                      snapshot) {
+                                                if (snapshot.connectionState ==
+                                                    ConnectionState.waiting) {
+                                                  return Center(
+                                                      child:
+                                                          CircularProgressIndicator());
+                                                } else if (snapshot.hasError) {
+                                                  return Center(
+                                                      child: Text(
+                                                          'Error: ${snapshot.error}'));
+                                                } else if (!snapshot.hasData ||
+                                                    snapshot.data!.isEmpty) {
+                                                  return Center(
+                                                      child: Text(
+                                                          'No results found'));
+                                                } else {
+                                                  List<Map<String, dynamic>>
+                                                      results = snapshot.data!;
+                                                  Map<String, bool>
+                                                      uniqueResults = {};
+                                                  for (var result in results) {
+                                                    uniqueResults[result[
+                                                            'question_id']] =
+                                                        result['is_correct'];
+                                                  }
+                                                  List<Map<String, dynamic>>
+                                                      finalResults =
+                                                      uniqueResults.entries
+                                                          .map((e) => {
+                                                                'question_id':
+                                                                    e.key,
+                                                                'is_correct':
+                                                                    e.value
+                                                              })
+                                                          .toList();
+
+                                                  return GridView.builder(
+                                                    gridDelegate:
+                                                        SliverGridDelegateWithFixedCrossAxisCount(
+                                                      crossAxisCount: 3,
+                                                      childAspectRatio: 2.5,
+                                                      mainAxisSpacing: 10,
+                                                      crossAxisSpacing: 10,
+                                                    ),
+                                                    itemCount: finalResults
+                                                        .length, // Số lượng item tùy theo kết quả
+                                                    itemBuilder:
+                                                        (BuildContext context,
+                                                            int index) {
+                                                      Map<String, dynamic>
+                                                          result =
+                                                          finalResults[index];
+                                                      bool isCorrect =
+                                                          result['is_correct'];
+                                                      Color getItemColor() {
+                                                        return isCorrect
+                                                            ? Colors.green
+                                                            : Colors.red;
+                                                      }
+
+                                                      return Container(
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(10),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                              color: Colors
+                                                                  .black
+                                                                  .withOpacity(
+                                                                      0.15),
+                                                              blurRadius: 5,
+                                                              offset:
+                                                                  Offset(0, 2),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: ElevatedButton(
+                                                          onPressed: () {},
+                                                          style: ButtonStyle(
+                                                            padding:
+                                                                MaterialStateProperty.all<
+                                                                        EdgeInsetsGeometry>(
+                                                                    EdgeInsets
+                                                                        .all(
+                                                                            8)),
+                                                            fixedSize: MaterialStateProperty
+                                                                .all<Size>(Size(
+                                                                    size.width *
+                                                                        0.27,
+                                                                    36)),
+                                                            backgroundColor:
+                                                                MaterialStateProperty
+                                                                    .all<Color>(
+                                                                        getItemColor()),
+                                                            shape: MaterialStateProperty
+                                                                .all<
+                                                                    RoundedRectangleBorder>(
+                                                              RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            10),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          child: Text(
+                                                              '${result['question_id']}',
+                                                              style: TextStyles
+                                                                  .loginButtonText),
+                                                        ),
+                                                      );
+                                                    },
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                          Expanded(child: Container()),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(context);
+                                            },
+                                            style: ButtonStyle(
+                                              padding: MaterialStateProperty
+                                                  .all<EdgeInsetsGeometry>(
+                                                      EdgeInsets.all(8)),
+                                              fixedSize: MaterialStateProperty
+                                                  .all<Size>(Size(
+                                                      size.width * 0.75, 55)),
+                                              backgroundColor:
+                                                  MaterialStateProperty
+                                                      .all<Color>(ColorPalette
+                                                          .primaryColor),
+                                              side: MaterialStateProperty
+                                                  .all<BorderSide>(BorderSide(
+                                                      color: Colors.white,
+                                                      width: 1)),
+                                              shape: MaterialStateProperty.all<
+                                                  RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(40),
                                                 ),
                                               ),
                                             ),
-                                            Gap(8),
-                                            Text(
-                                              '9/50',
-                                              style: TextStyles.itemprogress,
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(child: Container()),
-                              Container(
-                                height: size.height * 0.5,
-                                child: GridView.builder(
-                                  gridDelegate:
-                                      SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 3,
-                                    childAspectRatio: 2.5,
-                                    mainAxisSpacing: 10,
-                                    crossAxisSpacing: 10,
-                                  ),
-                                  itemCount:
-                                      50, // Thay đổi số lượng item tùy theo nhu cầu của bạn
-                                  itemBuilder:
-                                      (BuildContext context, int index) {
-                                    Color getItemColor(int index) {
-                                      if (index % 3 == 0) {
-                                        return Colors.green;
-                                      } else if (index % 3 == 1) {
-                                        return Colors.red;
-                                      } else {
-                                        return Colors.grey;
-                                      }
-                                    }
-
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                Colors.black.withOpacity(0.15),
-                                            blurRadius: 5,
-                                            offset: Offset(0, 2),
+                                            child: Text('Finish',
+                                                style:
+                                                    TextStyles.loginButtonText),
                                           ),
+                                          const Gap(15),
                                         ],
                                       ),
-                                      child: ElevatedButton(
-                                        onPressed: () {},
-                                        style: ButtonStyle(
-                                          padding: MaterialStateProperty.all<
-                                                  EdgeInsetsGeometry>(
-                                              EdgeInsets.all(8)),
-                                          fixedSize:
-                                              MaterialStateProperty.all<Size>(
-                                                  Size(size.width * 0.27, 36)),
-                                          backgroundColor:
-                                              MaterialStateProperty.all<Color>(
-                                                  getItemColor(index)),
-                                          shape: MaterialStateProperty.all<
-                                              RoundedRectangleBorder>(
-                                            RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                        ),
-                                        child: Text('${index + 1}',
-                                            style: TextStyles.loginButtonText),
-                                      ),
                                     );
-                                  },
-                                ),
-                              ),
-                              Expanded(child: Container()),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
+                                  }
                                 },
-                                style: ButtonStyle(
-                                  padding: MaterialStateProperty.all<
-                                      EdgeInsetsGeometry>(EdgeInsets.all(8)),
-                                  fixedSize: MaterialStateProperty.all<Size>(
-                                      Size(size.width * 0.75, 55)),
-                                  backgroundColor:
-                                      MaterialStateProperty.all<Color>(
-                                          ColorPalette.primaryColor),
-                                  side: MaterialStateProperty.all<BorderSide>(
-                                      BorderSide(
-                                          color: Colors.white, width: 1)),
-                                  shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                    RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(40),
-                                    ),
-                                  ),
-                                ),
-                                child: Text('Finish',
-                                    style: TextStyles.loginButtonText),
                               ),
-                              const Gap(15),
                             ],
                           ),
                         ],
