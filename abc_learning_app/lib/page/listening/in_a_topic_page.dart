@@ -1162,8 +1162,7 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                             ],
                           ),
 
-                          //Trang thứ 4
-                          // check lại
+                          // Trang thứ 4
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -1194,14 +1193,14 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                     int maxIndex = listeningData['maxIndex'];
                                     String title = listeningData['title'];
 
-                                    return FutureBuilder<DocumentSnapshot>(
-                                      future: FirebaseFirestore.instance
+                                    return StreamBuilder<DocumentSnapshot>(
+                                      stream: FirebaseFirestore.instance
                                           .collection('listening')
                                           .doc(listeningDoc.id)
                                           .collection('progress')
                                           .doc(FirebaseAuth
                                               .instance.currentUser?.uid)
-                                          .get(),
+                                          .snapshots(),
                                       builder: (context, progressSnapshot) {
                                         if (progressSnapshot.connectionState ==
                                             ConnectionState.waiting) {
@@ -1474,26 +1473,6 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                                 Expanded(child: Container()),
                                                 ElevatedButton(
                                                   onPressed: () async {
-                                                    // Fetch results and update current index
-                                                    final resultsSnapshot =
-                                                        await fetchResults(
-                                                                email!,
-                                                                widget.unitsId)
-                                                            .first;
-                                                    int correctAnswers =
-                                                        resultsSnapshot
-                                                            .where((result) =>
-                                                                result[
-                                                                    'is_correct'] ==
-                                                                true)
-                                                            .length;
-
-                                                    await updateCurrentIndexIfNeeded(
-                                                        widget.unitsId,
-                                                        FirebaseAuth.instance
-                                                            .currentUser!.uid,
-                                                        correctAnswers);
-
                                                     Navigator.pop(context);
                                                   },
                                                   style: ButtonStyle(

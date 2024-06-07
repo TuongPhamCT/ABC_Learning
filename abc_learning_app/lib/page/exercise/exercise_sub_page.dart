@@ -1610,6 +1610,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
 
                           //Trang thu tu
                           //Trang review
+                          // Trang thứ 4
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -1640,14 +1641,14 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                     int maxIndex = listeningData['maxIndex'];
                                     String title = listeningData['title'];
 
-                                    return FutureBuilder<DocumentSnapshot>(
-                                      future: FirebaseFirestore.instance
+                                    return StreamBuilder<DocumentSnapshot>(
+                                      stream: FirebaseFirestore.instance
                                           .collection('exercises')
                                           .doc(listeningDoc.id)
                                           .collection('progress')
                                           .doc(FirebaseAuth
                                               .instance.currentUser?.uid)
-                                          .get(),
+                                          .snapshots(),
                                       builder: (context, progressSnapshot) {
                                         if (progressSnapshot.connectionState ==
                                             ConnectionState.waiting) {
@@ -1676,7 +1677,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                   CrossAxisAlignment.center,
                                               children: [
                                                 Text(
-                                                  'Exercises',
+                                                  'Exercise',
                                                   style: TextStyles.titlePage
                                                       .copyWith(
                                                           color: Colors.black),
@@ -1750,7 +1751,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                               ),
                                                               Gap(8),
                                                               Text(
-                                                                '$currentIndex / $maxIndex',
+                                                                '$currentIndex/$maxIndex',
                                                                 style: TextStyles
                                                                     .itemprogress,
                                                               ),
