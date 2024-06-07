@@ -26,8 +26,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
   int cauHoi = 1;
   PageController _pageController = PageController();
   TextEditingController textController = TextEditingController();
-  late Future<DocumentSnapshot> _unitDocument;
   late Future<List<QueryDocumentSnapshot>> _exerciseDocument;
+  late Future<DocumentSnapshot> _unitDocument;
   late String? email;
   //trang thu 2
   TextEditingController wordController = TextEditingController();
@@ -109,7 +109,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
           .doc('${userId}_$unitId')
           .get();
       if (snapshot.exists) {
-        final results = List<Map<String, dynamic>>.from(snapshot['results']);
+        final List<Map<String, dynamic>> results =
+            List<Map<String, dynamic>>.from(snapshot['results']);
         int correctAnswers =
             results.where((result) => result['is_correct'] == true).length;
 
@@ -325,6 +326,96 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
   //
   String answer = '';
   String selectedAnswer = '';
+
+  Future<void> saveProgress(String userId, int currentIndex, int simpleIndex,
+      Map<String, dynamic> unitProgress) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('progress-exercise')
+          .doc(userId)
+          .set({
+        'current_index': currentIndex,
+        'simple_index': simpleIndex,
+        'unit_progress': unitProgress,
+      }, SetOptions(merge: true)); // Merge để giữ lại các trường hiện có
+    } catch (e) {
+      print("Error saving progress: $e");
+    }
+  }
+
+  Future<void> processAndSaveProgress(String userId, String unitId) async {
+    // Lấy danh sách các exercise documents cho unitId
+    List<QueryDocumentSnapshot> exerciseDocs =
+        await fetchExerciseDocuments(unitId);
+
+    int maxUnitIndex = 0;
+
+    // Tính toán maxIndex cho đơn vị học tập hiện tại
+    for (var exerciseDoc in exerciseDocs) {
+      var exerciseData = exerciseDoc.data() as Map<String, dynamic>;
+      maxUnitIndex = exerciseData['maxIndex'] ?? 0;
+    }
+
+    final DocumentReference docRef = FirebaseFirestore.instance
+        .collection('results')
+        .doc('${userId}_$unitId');
+
+    final DocumentSnapshot snapshot = await docRef.get();
+    if (!snapshot.exists) {
+      print('No results found for the user and unit.');
+      return;
+    }
+
+    List<Map<String, dynamic>> results =
+        List<Map<String, dynamic>>.from(snapshot['results']);
+    int currentUnitIndex =
+        results.where((result) => result['is_correct'] == true).length;
+
+    // Lấy dữ liệu progress hiện tại từ Firestore
+    DocumentSnapshot userProgressDoc = await FirebaseFirestore.instance
+        .collection('progress-exercise')
+        .doc(userId)
+        .get();
+
+    int currentIndex = 0;
+    int simpleIndex = 0;
+
+    Map<String, dynamic> unitProgress = {}; // Lưu trữ tiến độ của từng unit
+
+    if (userProgressDoc.exists) {
+      var progressData = userProgressDoc.data() as Map<String, dynamic>;
+      currentIndex = progressData['current_index'] ?? 0;
+      simpleIndex = progressData['simple_index'] ?? 0;
+      unitProgress =
+          Map<String, dynamic>.from(progressData['unit_progress'] ?? {});
+    }
+
+    // Tính toán currentIndex và cập nhật unitProgress
+    // Tính toán currentIndex và cập nhật unitProgress
+    var previousUnitProgress = unitProgress[unitId] as Map<String, dynamic>? ??
+        {'index': 0, 'reachMax': false};
+    int previousUnitIndex = previousUnitProgress['index'];
+    bool reachMax = previousUnitProgress['reachMax'];
+
+    if (currentUnitIndex > previousUnitIndex) {
+      currentIndex = currentIndex - previousUnitIndex + currentUnitIndex;
+      unitProgress[unitId] = {'index': currentUnitIndex, 'reachMax': reachMax};
+
+      // Kiểm tra nếu tất cả câu hỏi đều đúng lần đầu tiên cho đơn vị hiện tại
+      if (currentUnitIndex == maxUnitIndex && !reachMax) {
+        simpleIndex++;
+        unitProgress[unitId]['reachMax'] = true;
+      }
+    }
+
+    // Lưu tiến độ vào Firestore
+    await saveProgress(userId, currentIndex, simpleIndex, unitProgress);
+  }
+
+// Ví dụ gọi hàm này sau khi có kết quả
+  void handleResults(String userId, String unitId) {
+    processAndSaveProgress(userId, unitId);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1921,6 +2012,22 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                 Expanded(child: Container()),
                                                 ElevatedButton(
                                                   onPressed: () async {
+                                                    try {
+                                                      String? userId =
+                                                          await fetchUserIdByEmail(
+                                                              email!);
+                                                      if (userId != null) {
+                                                        handleResults(userId,
+                                                            widget.unitsId);
+                                                        Navigator.pop(context);
+                                                      } else {
+                                                        print('User not found');
+                                                        // Xử lý trường hợp người dùng không tìm thấy
+                                                      }
+                                                    } catch (e) {
+                                                      print('Error: $e');
+                                                      // Xử lý lỗi nếu cần thiết
+                                                    }
                                                     Navigator.pop(context);
                                                   },
                                                   style: ButtonStyle(
