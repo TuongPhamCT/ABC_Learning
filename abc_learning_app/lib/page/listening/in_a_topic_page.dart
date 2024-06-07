@@ -170,6 +170,15 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
     }
   }
 
+  Future<void> updateData() async {
+    final resultsSnapshot = await fetchResults(email!, widget.unitsId).first;
+    int correctAnswers =
+        resultsSnapshot.where((result) => result['is_correct'] == true).length;
+
+    await updateCurrentIndexIfNeeded(
+        widget.unitsId, FirebaseAuth.instance.currentUser!.uid, correctAnswers);
+  }
+
   int cauHoi = 1;
   PageController _pageController = PageController();
   AudioPlayer player = AudioPlayer();
@@ -1451,7 +1460,7 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                                                   ),
                                                                 ),
                                                                 child: Text(
-                                                                    '${result['question_id']}',
+                                                                    '${index + 1}',
                                                                     style: TextStyles
                                                                         .loginButtonText),
                                                               ),
