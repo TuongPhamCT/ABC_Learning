@@ -293,6 +293,50 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
   //
   String answer = '';
   String selectedAnswer = '';
+
+  ///Trang thu 4 cap nhat achievement
+  Future<void> updateUnitAchievement(
+      String userId, String achievementId, int progress) async {
+    final CollectionReference achievementProgressCollection =
+        FirebaseFirestore.instance.collection('achievement_progress');
+
+    DocumentReference achievementDoc = achievementProgressCollection
+        .doc(userId)
+        .collection('achievement')
+        .doc(achievementId);
+
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(achievementDoc);
+      if (snapshot.exists) {
+        transaction.update(achievementDoc, {'current_progress': progress});
+      } else {
+        transaction.set(achievementDoc, {'current_progress': progress});
+      }
+    });
+  }
+
+  Future<void> incrementPerfectAchievement(
+      String userId, String perfectAchievementId) async {
+    final CollectionReference achievementProgressCollection =
+        FirebaseFirestore.instance.collection('achievement_progress');
+
+    DocumentReference achievementDoc = achievementProgressCollection
+        .doc(userId)
+        .collection('achievements')
+        .doc(perfectAchievementId);
+
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot snapshot = await transaction.get(achievementDoc);
+      if (snapshot.exists) {
+        int currentProgress = snapshot['current_progress'];
+        transaction
+            .update(achievementDoc, {'current_progress': currentProgress + 1});
+      } else {
+        transaction.set(achievementDoc, {'current_progress': 1});
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -1574,6 +1618,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                     ),
                                 ]),
                           ),
+
                           //Trang thu tu
                           //Trang review
                           Column(
@@ -1809,7 +1854,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                             ),
                                                           ),
                                                           child: Text(
-                                                              '${result['question_id']}',
+                                                              '${index + 1}',
                                                               style: TextStyles
                                                                   .loginButtonText),
                                                         ),
