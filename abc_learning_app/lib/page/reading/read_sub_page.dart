@@ -382,7 +382,7 @@ class _ReadSubPageState extends State<ReadSubPage> {
             ),
             Container(
               alignment: Alignment.center,
-              height: size.height * 0.4,
+              height: size.height * 0.35,
               padding: const EdgeInsets.symmetric(
                 horizontal: 15,
                 vertical: 30,
@@ -519,7 +519,7 @@ class _ReadSubPageState extends State<ReadSubPage> {
               if (checkAnswer)
                 if (selectedAnswer == question.answer)
                   Container(
-                    height: size.height * 0.23,
+                    height: size.height * 0.20,
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.green.withOpacity(0.3),
@@ -533,12 +533,12 @@ class _ReadSubPageState extends State<ReadSubPage> {
                           'That\'s right',
                           style: TextStyles.questionResult,
                         ),
-                        const Gap(5),
+                        const Gap(2),
                         const Text(
                           'Answer:',
                           style: TextStyles.questionLabel,
                         ),
-                        const Gap(10),
+                        const Gap(2),
                         Container(
                           alignment: Alignment.center,
                           child: Text(
@@ -587,7 +587,7 @@ class _ReadSubPageState extends State<ReadSubPage> {
                   )
                 else
                   Container(
-                    height: size.height * 0.23,
+                    height: size.height * 0.20,
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.3),
@@ -603,14 +603,14 @@ class _ReadSubPageState extends State<ReadSubPage> {
                             color: Colors.red,
                           ),
                         ),
-                        const Gap(5),
+                        const Gap(2),
                         Text(
                           'Answer:',
                           style: TextStyles.questionLabel.copyWith(
                             color: Colors.red,
                           ),
                         ),
-                        const Gap(10),
+                        const Gap(2),
                         Container(
                           alignment: Alignment.center,
                           child: Text(
