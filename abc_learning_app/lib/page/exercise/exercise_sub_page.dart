@@ -1283,7 +1283,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                         .copyWith(color: Colors.black),
                                     textAlign: TextAlign.center,
                                   ),
-                                  const Gap(45),
+                                  Expanded(child: Container()),
                                   Row(
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
@@ -1507,6 +1507,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       ),
                                     ],
                                   ),
+                                  Expanded(child: Container()),
                                   if (checkAnswer)
                                     if (checkAllPairsCorrect(table,
                                         snapshot.data!.get('question_3')))
