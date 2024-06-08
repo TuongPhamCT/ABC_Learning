@@ -4,7 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ListeningProgressRepo {
   Future<ListeningProgress> getExerciseProgressById(String userId) async {
     DocumentSnapshot doc = await FirebaseFirestore.instance
-        .collection('progress-exercise')
+        .collection('progress-listening')
         .doc(userId)
         .get();
 

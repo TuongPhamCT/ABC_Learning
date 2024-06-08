@@ -192,7 +192,7 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
       Map<String, dynamic> unitProgress) async {
     try {
       await FirebaseFirestore.instance
-          .collection('progress-exercise')
+          .collection('progress-listening')
           .doc(userId)
           .set({
         'current_index': currentIndex,
