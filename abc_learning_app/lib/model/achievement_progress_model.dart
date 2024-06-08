@@ -70,7 +70,8 @@ class AchievementProgressRepo {
     DocumentSnapshot<Map<String, dynamic>> documentSnapshot =
         await collectionRef.get();
 
-    final achievement = await AchievementProgress.fromFirestore(documentSnapshot);
+    final achievement =
+        await AchievementProgress.fromFirestore(documentSnapshot);
     print(achievement);
     return achievement;
   }

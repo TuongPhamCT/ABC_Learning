@@ -2,11 +2,17 @@ import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/model/achievement_model.dart';
 import 'package:abc_learning_app/model/achievement_progress_model.dart';
+import 'package:abc_learning_app/model/exercise/exercise_progress.dart';
+import 'package:abc_learning_app/model/exercise/exercise_progress_repo.dart';
+import 'package:abc_learning_app/model/listening/listening_progress.dart';
+import 'package:abc_learning_app/model/listening/listening_progress_repo.dart';
 import 'package:abc_learning_app/model/reading_data_model.dart';
 import 'package:abc_learning_app/model/reading_progress_model.dart';
 import 'package:abc_learning_app/page/home_page.dart';
 import 'package:abc_learning_app/page/profile/profile_main_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -22,15 +28,14 @@ class AchievementPage extends StatefulWidget {
 
 class _AchievementPageState extends State<AchievementPage> {
   static final AchievementRepo _achievementRepo = AchievementRepo();
-  static final AchievementProgressRepo _achievementProgressRepo =
-      AchievementProgressRepo();
   final ReadingTopicRepo _readingTopicRepo = ReadingTopicRepo();
   final ReadingProgressRepo _readingProgressRepo = ReadingProgressRepo();
-
+  final ExerciseProgressRepo _exerciseProgressRepo = ExerciseProgressRepo();
+  final ListeningProgressRepo _listeningProgressRepo = ListeningProgressRepo();
   int _totalAchievement = 0;
   int _completePercent = 0;
   int completedAchievements = 0;
-  Map<String, int> progressPerAchievement ={};
+  Map<String, int> progressPerAchievement = {};
 
   int _selectedIndex = 1;
   double rating = 3;
@@ -52,6 +57,10 @@ class _AchievementPageState extends State<AchievementPage> {
               _achievementRepo.getAllAchievements(),
               _readingTopicRepo.getAllTopic(),
               _readingProgressRepo.getReadingProgressById(
+                  FirebaseAuth.instance.currentUser!.uid),
+              _exerciseProgressRepo.getExerciseProgressById(
+                  FirebaseAuth.instance.currentUser!.uid),
+              _listeningProgressRepo.getExerciseProgressById(
                   FirebaseAuth.instance.currentUser!.uid)
             ]),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -59,6 +68,8 @@ class _AchievementPageState extends State<AchievementPage> {
                 List<Achievement> achievements = snapshot.data[0];
                 List<ReadingTopic> readingTopics = snapshot.data[1];
                 ReadingProgress readingProgress = snapshot.data[2];
+                ExerciseProgress exerciseProgress = snapshot.data[3];
+                ListeningProgress listeningProgress = snapshot.data[4];
                 for (int i = 0; i < achievements.length; i++) {
                   Achievement currentAchievement = achievements[i];
                   int currentProgress = 0;
@@ -75,12 +86,44 @@ class _AchievementPageState extends State<AchievementPage> {
                         currentProgress++;
                       }
                     }
-                    progressPerAchievement
-                        .addEntries({currentAchievement.id: currentProgress}.entries);
+                    progressPerAchievement.addEntries(
+                        {currentAchievement.id: currentProgress}.entries);
                     if (currentProgress >= currentAchievement.maxIndex) {
                       completedAchievements++;
                       print(completedAchievements);
                     }
+                  }
+                  //Doan nay la setting achievement cho exercise
+                  else if (currentAchievement.type == 'exercise-topic') {
+                    for (var unit in exerciseProgress.unitProgress.values) {
+                      if (unit['reachMax'] == true) {
+                        currentProgress++;
+                      }
+                    }
+                    currentProgress =
+                        exerciseProgress.simpleIndex > currentProgress
+                            ? exerciseProgress.simpleIndex
+                            : currentProgress;
+                  } else if (currentAchievement.type == 'exercise-index') {
+                    currentProgress = exerciseProgress.currentIndex;
+                  } else if (currentAchievement.type == 'listening-topic') {
+                    for (var unit in listeningProgress.unitProgress.values) {
+                      if (unit['reachMax'] == true) {
+                        currentProgress++;
+                      }
+                    }
+                    currentProgress =
+                        listeningProgress.simpleIndex > currentProgress
+                            ? listeningProgress.simpleIndex
+                            : currentProgress;
+                  } else if (currentAchievement.type == 'listening-index') {
+                    currentProgress = listeningProgress.currentIndex;
+                  }
+
+                  progressPerAchievement[currentAchievement.id] =
+                      currentProgress;
+                  if (currentProgress >= currentAchievement.maxIndex) {
+                    completedAchievements++;
                   }
                 }
                 _totalAchievement = achievements.length;
@@ -187,8 +230,12 @@ class _AchievementPageState extends State<AchievementPage> {
                         itemCount: achievements.length,
                         itemBuilder: (context, index) {
                           Color color = colors[index % 4];
-                          return buildAchievementItem(index, color,
-                              achievements[index], progressPerAchievement[achievements[index].id]??0);
+                          return buildAchievementItem(
+                              index,
+                              color,
+                              achievements[index],
+                              progressPerAchievement[achievements[index].id] ??
+                                  0);
                         },
                       ),
                     )
