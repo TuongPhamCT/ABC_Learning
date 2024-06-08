@@ -7,6 +7,8 @@ import 'package:abc_learning_app/page/listening/listen_main_page.dart';
 import 'package:abc_learning_app/page/login_page.dart';
 import 'package:abc_learning_app/page/profile/profile_main_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -24,6 +26,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  double overallListeningProgress = 0.0;
+  double overallExerciseProgress = 0.0;
   // @override
   // void initState() {
   //   super.initState();
@@ -35,6 +39,105 @@ class _HomePageState extends State<HomePage> {
   //     }
   //   });
   // } // Gây lỗi khi chuyển trang bằng BottomNavigationBar
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    fetchOverallListeningProgress();
+    fetchOverallExerciseProgress();
+  }
+
+  Future<void> fetchOverallListeningProgress() async {
+    String? email = FirebaseAuth.instance.currentUser?.email;
+    String? userId = await fetchUserIdByEmail(email);
+    if (userId != null) {
+      QuerySnapshot exercisesSnapshot =
+          await FirebaseFirestore.instance.collection('listening').get();
+
+      int totalMaxIndex = 0;
+      int totalCurrentIndex = 0;
+
+      for (var doc in exercisesSnapshot.docs) {
+        int maxIndex = doc['maxIndex'];
+        totalMaxIndex += maxIndex;
+
+        DocumentSnapshot progressSnapshot = await FirebaseFirestore.instance
+            .collection('listening')
+            .doc(doc.id)
+            .collection('progress')
+            .doc(userId)
+            .get();
+
+        if (progressSnapshot.exists) {
+          int currentIndex = progressSnapshot['current_index'];
+          totalCurrentIndex += currentIndex;
+        }
+        // Log để kiểm tra dữ liệu
+        print(
+            'maxIndex: $maxIndex, currentIndex: ${progressSnapshot.exists ? progressSnapshot['current_index'] : 0}');
+      }
+      // Log tổng số chỉ số
+      print(
+          'totalMaxIndex: $totalMaxIndex, totalCurrentIndex: $totalCurrentIndex');
+
+      if (totalMaxIndex > 0) {
+        setState(() {
+          overallListeningProgress = totalCurrentIndex / totalMaxIndex;
+          print(
+              'overallListeningProgress: $overallListeningProgress'); // Log để kiểm tra giá trị
+        });
+      }
+    }
+  }
+
+  Future<void> fetchOverallExerciseProgress() async {
+    String? email = FirebaseAuth.instance.currentUser?.email;
+    String? userId = await fetchUserIdByEmail(email);
+    if (userId != null) {
+      QuerySnapshot exercisesSnapshot =
+          await FirebaseFirestore.instance.collection('exercises').get();
+
+      int totalMaxIndex = 0;
+      int totalCurrentIndex = 0;
+
+      for (var doc in exercisesSnapshot.docs) {
+        int maxIndex = doc['maxIndex'];
+        totalMaxIndex += maxIndex;
+
+        DocumentSnapshot progressSnapshot = await FirebaseFirestore.instance
+            .collection('exercises')
+            .doc(doc.id)
+            .collection('progress')
+            .doc(userId)
+            .get();
+
+        if (progressSnapshot.exists) {
+          int currentIndex = progressSnapshot['current_index'];
+          totalCurrentIndex += currentIndex;
+        }
+      }
+
+      if (totalMaxIndex > 0) {
+        setState(() {
+          overallExerciseProgress = totalCurrentIndex / totalMaxIndex;
+        });
+      }
+    }
+  }
+
+  Future<String?> fetchUserIdByEmail(String? email) async {
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.first.id;
+    } else {
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,7 +249,7 @@ class _HomePageState extends State<HomePage> {
                                           borderRadius:
                                               BorderRadius.circular(15),
                                           child: LinearProgressIndicator(
-                                            value: 0.8,
+                                            value: overallListeningProgress,
                                             backgroundColor: ColorPalette
                                                 .progressbarbackground,
                                             valueColor: AlwaysStoppedAnimation<
@@ -157,7 +260,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       Gap(8),
                                       Text(
-                                        '80%',
+                                        '${(overallListeningProgress * 100).toStringAsFixed(0)}%',
                                         style: TextStyles.progress,
                                       ),
                                     ],
@@ -272,7 +375,7 @@ class _HomePageState extends State<HomePage> {
                                           borderRadius:
                                               BorderRadius.circular(15),
                                           child: LinearProgressIndicator(
-                                            value: 0.3,
+                                            value: overallExerciseProgress,
                                             backgroundColor: ColorPalette
                                                 .progressbarbackground,
                                             valueColor: AlwaysStoppedAnimation<
@@ -283,7 +386,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       Gap(8),
                                       Text(
-                                        '30%',
+                                        '${(overallExerciseProgress * 100).toStringAsFixed(0)}%',
                                         style: TextStyles.progress,
                                       ),
                                     ],
