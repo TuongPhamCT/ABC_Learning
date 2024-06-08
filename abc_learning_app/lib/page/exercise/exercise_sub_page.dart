@@ -26,8 +26,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
   int cauHoi = 1;
   PageController _pageController = PageController();
   TextEditingController textController = TextEditingController();
-  late Future<DocumentSnapshot> _unitDocument;
   late Future<List<QueryDocumentSnapshot>> _exerciseDocument;
+  late Future<DocumentSnapshot> _unitDocument;
   late String? email;
   //trang thu 2
   TextEditingController wordController = TextEditingController();
@@ -100,17 +100,74 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
     return querySnapshot.docs;
   }
 
-  Future<void> updateCurrentIndexIfNeeded(
-      String unitsId, int newCorrectAnswers) async {
-    final exerciseDocs = await fetchExerciseDocuments(unitsId);
-    if (exerciseDocs.isNotEmpty) {
-      final docRef = exerciseDocs.first.reference;
-      final exerciseData = exerciseDocs.first.data() as Map<String, dynamic>;
-      int currentIndex = exerciseData['currentIndex'];
+  Stream<List<Map<String, dynamic>>> fetchResults(
+      String email, String unitId) async* {
+    final String? userId = await fetchUserIdByEmail(email);
+    if (userId != null) {
+      final DocumentSnapshot snapshot = await FirebaseFirestore.instance
+          .collection('results')
+          .doc('${userId}_$unitId')
+          .get();
+      if (snapshot.exists) {
+        final List<Map<String, dynamic>> results =
+            List<Map<String, dynamic>>.from(snapshot['results']);
+        int correctAnswers =
+            results.where((result) => result['is_correct'] == true).length;
 
-      if (newCorrectAnswers > currentIndex) {
-        await docRef.update({'currentIndex': newCorrectAnswers});
+        await updateCurrentIndexIfNeeded(unitId, userId, correctAnswers);
+
+        yield results;
+      } else {
+        yield [];
       }
+    } else {
+      yield [];
+    }
+  }
+
+  Future<void> updateCurrentIndexIfNeeded(
+      String unitsId, String userId, int newCorrectAnswers) async {
+    try {
+      // Truy cập tài liệu listening theo unitsId trong collection listening
+      final QuerySnapshot listeningSnapshot = await FirebaseFirestore.instance
+          .collection('exercises')
+          .where('units_id', isEqualTo: unitsId)
+          .get();
+
+      if (listeningSnapshot.docs.isNotEmpty) {
+        final DocumentSnapshot unitsDoc = listeningSnapshot.docs.first;
+
+        // Truy cập tài liệu progress của người dùng
+        final progressDocRef =
+            unitsDoc.reference.collection('progress').doc(userId);
+        final progressDocSnapshot = await progressDocRef.get();
+
+        if (progressDocSnapshot.exists) {
+          // Lấy dữ liệu của tài liệu progress
+          final progressData =
+              progressDocSnapshot.data() as Map<String, dynamic>;
+          int currentIndex = progressData['current_index'] ?? 0;
+
+          // Kiểm tra giá trị của newCorrectAnswers và currentIndex
+          print(
+              'Current Index: $currentIndex, New Correct Answers: $newCorrectAnswers');
+
+          // Cập nhật currentIndex nếu newCorrectAnswers lớn hơn currentIndex hiện tại
+          if (newCorrectAnswers > currentIndex) {
+            print('Updating current_index to: $newCorrectAnswers');
+            await progressDocRef.update({'current_index': newCorrectAnswers});
+            print('Update successful');
+          } else {
+            print('No update needed');
+          }
+        } else {
+          print('Progress document does not exist');
+        }
+      } else {
+        print('Listening document does not exist');
+      }
+    } catch (e) {
+      print('Error updating current index: $e');
     }
   }
 
@@ -125,30 +182,6 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
       return querySnapshot.docs.first.id;
     } else {
       return null;
-    }
-  }
-
-  Stream<List<Map<String, dynamic>>> fetchResults(
-      String email, String unitId) async* {
-    final String? userId = await fetchUserIdByEmail(email);
-    if (userId != null) {
-      final DocumentSnapshot snapshot = await FirebaseFirestore.instance
-          .collection('results')
-          .doc('${userId}_$unitId')
-          .get();
-      if (snapshot.exists) {
-        final results = List<Map<String, dynamic>>.from(snapshot['results']);
-        int correctAnswers =
-            results.where((result) => result['is_correct']).length;
-
-        await updateCurrentIndexIfNeeded(unitId, correctAnswers);
-
-        yield results;
-      } else {
-        yield [];
-      }
-    } else {
-      yield [];
     }
   }
 
@@ -293,6 +326,97 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
   //
   String answer = '';
   String selectedAnswer = '';
+
+  Future<void> saveProgress(String userId, int currentIndex, int simpleIndex,
+      Map<String, dynamic> unitProgress) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('progress-exercise')
+          .doc(userId)
+          .set({
+        'current_index': currentIndex,
+        'simple_index': simpleIndex,
+        'unit_progress': unitProgress,
+      }, SetOptions(merge: true)); // Merge để giữ lại các trường hiện có
+    } catch (e) {
+      print("Error saving progress: $e");
+    }
+  }
+
+  Future<void> processAndSaveProgress(String userId, String unitId) async {
+    // Lấy danh sách các exercise documents cho unitId
+    List<QueryDocumentSnapshot> exerciseDocs =
+        await fetchExerciseDocuments(unitId);
+
+    int maxUnitIndex = 0;
+
+    // Tính toán maxIndex cho đơn vị học tập hiện tại
+    for (var exerciseDoc in exerciseDocs) {
+      var exerciseData = exerciseDoc.data() as Map<String, dynamic>;
+      maxUnitIndex = exerciseData['maxIndex'] ?? 0;
+    }
+
+    final DocumentReference docRef = FirebaseFirestore.instance
+        .collection('results')
+        .doc('${userId}_$unitId');
+
+    final DocumentSnapshot snapshot = await docRef.get();
+    if (!snapshot.exists) {
+      print('No results found for the user and unit.');
+      return;
+    }
+
+    List<Map<String, dynamic>> results =
+        List<Map<String, dynamic>>.from(snapshot['results']);
+    int currentUnitIndex =
+        results.where((result) => result['is_correct'] == true).length;
+
+    // Lấy dữ liệu progress hiện tại từ Firestore
+    DocumentSnapshot userProgressDoc = await FirebaseFirestore.instance
+        .collection('progress-exercise')
+        .doc(userId)
+        .get();
+
+    int currentIndex = 0;
+    int simpleIndex = 0;
+
+    Map<String, dynamic> unitProgress = {}; // Lưu trữ tiến độ của từng unit
+
+    if (userProgressDoc.exists) {
+      var progressData = userProgressDoc.data() as Map<String, dynamic>;
+      currentIndex = progressData['current_index'] ?? 0;
+      simpleIndex = progressData['simple_index'] ?? 0;
+      unitProgress =
+          Map<String, dynamic>.from(progressData['unit_progress'] ?? {});
+    }
+
+    // Tính toán currentIndex và cập nhật unitProgress
+    // Tính toán currentIndex và cập nhật unitProgress
+    var previousUnitProgress = unitProgress[unitId] as Map<String, dynamic>? ??
+        {'index': 0, 'reachMax': false};
+    int previousUnitIndex = previousUnitProgress['index'];
+    bool reachMax = previousUnitProgress['reachMax'];
+
+    if (currentUnitIndex > previousUnitIndex) {
+      currentIndex = currentIndex - previousUnitIndex + currentUnitIndex;
+      unitProgress[unitId] = {'index': currentUnitIndex, 'reachMax': reachMax};
+
+      // Kiểm tra nếu tất cả câu hỏi đều đúng lần đầu tiên cho đơn vị hiện tại
+      if (currentUnitIndex == maxUnitIndex && !reachMax) {
+        simpleIndex++;
+        unitProgress[unitId]['reachMax'] = true;
+      }
+    }
+
+    // Lưu tiến độ vào Firestore
+    await saveProgress(userId, currentIndex, simpleIndex, unitProgress);
+  }
+
+// Ví dụ gọi hàm này sau khi có kết quả
+  void handleResults(String userId, String unitId) {
+    processAndSaveProgress(userId, unitId);
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
@@ -1574,8 +1698,10 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                     ),
                                 ]),
                           ),
+
                           //Trang thu tu
                           //Trang review
+                          // Trang thứ 4
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
@@ -1599,268 +1725,359 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                       snapshot.data!.docs.isEmpty) {
                                     return Center(child: Text('No data found'));
                                   } else {
-                                    var exerciseData = snapshot.data!.docs.first
-                                        .data() as Map<String, dynamic>;
-                                    int currentIndex =
-                                        exerciseData['currentIndex'];
-                                    int maxIndex = exerciseData['maxIndex'];
-                                    String title = exerciseData['title'];
+                                    var listeningDoc =
+                                        snapshot.data!.docs.first;
+                                    var listeningData = listeningDoc.data()
+                                        as Map<String, dynamic>;
+                                    int maxIndex = listeningData['maxIndex'];
+                                    String title = listeningData['title'];
 
-                                    return Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            'Exercises',
-                                            style: TextStyles.titlePage
-                                                .copyWith(color: Colors.black),
-                                          ),
-                                          const Gap(15),
-                                          Container(
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(7),
-                                              border: Border.all(
-                                                color: ColorPalette.itemBorder,
-                                                width: 1,
-                                              ),
-                                            ),
-                                            padding: EdgeInsets.all(15),
-                                            margin: EdgeInsets.only(bottom: 20),
-                                            child: Row(
+                                    return StreamBuilder<DocumentSnapshot>(
+                                      stream: FirebaseFirestore.instance
+                                          .collection('exercises')
+                                          .doc(listeningDoc.id)
+                                          .collection('progress')
+                                          .doc(FirebaseAuth
+                                              .instance.currentUser?.uid)
+                                          .snapshots(),
+                                      builder: (context, progressSnapshot) {
+                                        if (progressSnapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return Center(
+                                              child:
+                                                  CircularProgressIndicator());
+                                        } else if (progressSnapshot.hasError) {
+                                          return Center(
+                                              child: Text(
+                                                  'Error: ${progressSnapshot.error}'));
+                                        } else if (!progressSnapshot.hasData ||
+                                            !progressSnapshot.data!.exists) {
+                                          return Center(
+                                              child: Text(
+                                                  'No progress data found'));
+                                        } else {
+                                          var progressData =
+                                              progressSnapshot.data!.data()
+                                                  as Map<String, dynamic>;
+                                          int currentIndex =
+                                              progressData['current_index'];
+
+                                          return Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.center,
                                               children: [
-                                                Image.asset(
-                                                  AssetHelper.itemListen,
-                                                  width: 60,
-                                                  height: 60,
-                                                  fit: BoxFit.cover,
+                                                Text(
+                                                  'Exercise',
+                                                  style: TextStyles.titlePage
+                                                      .copyWith(
+                                                          color: Colors.black),
                                                 ),
-                                                Gap(10),
-                                                Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      title,
-                                                      style:
-                                                          TextStyles.itemTitle,
+                                                const Gap(15),
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            7),
+                                                    border: Border.all(
+                                                      color: ColorPalette
+                                                          .itemBorder,
+                                                      width: 1,
                                                     ),
-                                                    const Gap(12),
-                                                    Row(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .end,
-                                                      children: [
-                                                        Container(
-                                                          width:
-                                                              size.width - 185,
-                                                          height: 10,
-                                                          child: ClipRRect(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        15),
-                                                            child:
-                                                                LinearProgressIndicator(
-                                                              value:
-                                                                  currentIndex /
-                                                                      maxIndex,
-                                                              backgroundColor:
-                                                                  ColorPalette
-                                                                      .progressbarbackground,
-                                                              valueColor:
-                                                                  AlwaysStoppedAnimation<
-                                                                          Color>(
-                                                                      ColorPalette
-                                                                          .progressbarValue),
-                                                            ),
+                                                  ),
+                                                  padding: EdgeInsets.all(15),
+                                                  margin: EdgeInsets.only(
+                                                      bottom: 20),
+                                                  child: Row(
+                                                    children: [
+                                                      Image.asset(
+                                                        AssetHelper.itemListen,
+                                                        width: 60,
+                                                        height: 60,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                      Gap(10),
+                                                      Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            title,
+                                                            style: TextStyles
+                                                                .itemTitle,
                                                           ),
-                                                        ),
-                                                        Gap(8),
-                                                        Text(
-                                                          '$currentIndex/$maxIndex',
-                                                          style: TextStyles
-                                                              .itemprogress,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
+                                                          const Gap(12),
+                                                          Row(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .end,
+                                                            children: [
+                                                              Container(
+                                                                width:
+                                                                    size.width -
+                                                                        185,
+                                                                height: 10,
+                                                                child:
+                                                                    ClipRRect(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              15),
+                                                                  child:
+                                                                      LinearProgressIndicator(
+                                                                    value: currentIndex /
+                                                                        maxIndex,
+                                                                    backgroundColor:
+                                                                        ColorPalette
+                                                                            .progressbarbackground,
+                                                                    valueColor:
+                                                                        AlwaysStoppedAnimation<
+                                                                            Color>(
+                                                                      ColorPalette
+                                                                          .progressbarValue,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              Gap(8),
+                                                              Text(
+                                                                '$currentIndex/$maxIndex',
+                                                                style: TextStyles
+                                                                    .itemprogress,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
-                                              ],
-                                            ),
-                                          ),
-                                          Expanded(child: Container()),
-                                          Container(
-                                            height: size.height * 0.5,
-                                            child: StreamBuilder(
-                                              stream: fetchResults(
-                                                  email!, widget.unitsId),
-                                              builder: (context,
-                                                  AsyncSnapshot<
-                                                          List<
-                                                              Map<String,
-                                                                  dynamic>>>
-                                                      snapshot) {
-                                                if (snapshot.connectionState ==
-                                                    ConnectionState.waiting) {
-                                                  return Center(
-                                                      child:
-                                                          CircularProgressIndicator());
-                                                } else if (snapshot.hasError) {
-                                                  return Center(
-                                                      child: Text(
-                                                          'Error: ${snapshot.error}'));
-                                                } else if (!snapshot.hasData ||
-                                                    snapshot.data!.isEmpty) {
-                                                  return Center(
-                                                      child: Text(
-                                                          'No results found'));
-                                                } else {
-                                                  List<Map<String, dynamic>>
-                                                      results = snapshot.data!;
-                                                  Map<String, bool>
-                                                      uniqueResults = {};
-                                                  for (var result in results) {
-                                                    uniqueResults[result[
-                                                            'question_id']] =
-                                                        result['is_correct'];
-                                                  }
-                                                  List<Map<String, dynamic>>
-                                                      finalResults =
-                                                      uniqueResults.entries
-                                                          .map((e) => {
-                                                                'question_id':
-                                                                    e.key,
-                                                                'is_correct':
-                                                                    e.value
-                                                              })
-                                                          .toList();
+                                                Expanded(child: Container()),
+                                                Container(
+                                                  height: size.height * 0.5,
+                                                  child: StreamBuilder(
+                                                    stream: fetchResults(
+                                                        email!, widget.unitsId),
+                                                    builder: (context,
+                                                        AsyncSnapshot<
+                                                                List<
+                                                                    Map<String,
+                                                                        dynamic>>>
+                                                            snapshot) {
+                                                      if (snapshot
+                                                              .connectionState ==
+                                                          ConnectionState
+                                                              .waiting) {
+                                                        return Center(
+                                                            child:
+                                                                CircularProgressIndicator());
+                                                      } else if (snapshot
+                                                          .hasError) {
+                                                        return Center(
+                                                            child: Text(
+                                                                'Error: ${snapshot.error}'));
+                                                      } else if (!snapshot
+                                                              .hasData ||
+                                                          snapshot
+                                                              .data!.isEmpty) {
+                                                        return Center(
+                                                            child: Text(
+                                                                'No results found'));
+                                                      } else {
+                                                        List<
+                                                                Map<String,
+                                                                    dynamic>>
+                                                            results =
+                                                            snapshot.data!;
+                                                        Map<String, bool>
+                                                            uniqueResults = {};
+                                                        for (var result
+                                                            in results) {
+                                                          uniqueResults[result[
+                                                                  'question_id']] =
+                                                              result[
+                                                                  'is_correct'];
+                                                        }
+                                                        List<
+                                                                Map<String,
+                                                                    dynamic>>
+                                                            finalResults =
+                                                            uniqueResults
+                                                                .entries
+                                                                .map((e) => {
+                                                                      'question_id':
+                                                                          e.key,
+                                                                      'is_correct':
+                                                                          e.value
+                                                                    })
+                                                                .toList();
 
-                                                  return GridView.builder(
-                                                    gridDelegate:
-                                                        SliverGridDelegateWithFixedCrossAxisCount(
-                                                      crossAxisCount: 3,
-                                                      childAspectRatio: 2.5,
-                                                      mainAxisSpacing: 10,
-                                                      crossAxisSpacing: 10,
-                                                    ),
-                                                    itemCount: finalResults
-                                                        .length, // Số lượng item tùy theo kết quả
-                                                    itemBuilder:
-                                                        (BuildContext context,
-                                                            int index) {
-                                                      Map<String, dynamic>
-                                                          result =
-                                                          finalResults[index];
-                                                      bool isCorrect =
-                                                          result['is_correct'];
-                                                      Color getItemColor() {
-                                                        return isCorrect
-                                                            ? Colors.green
-                                                            : Colors.red;
-                                                      }
+                                                        return GridView.builder(
+                                                          gridDelegate:
+                                                              SliverGridDelegateWithFixedCrossAxisCount(
+                                                            crossAxisCount: 3,
+                                                            childAspectRatio:
+                                                                2.5,
+                                                            mainAxisSpacing: 10,
+                                                            crossAxisSpacing:
+                                                                10,
+                                                          ),
+                                                          itemCount:
+                                                              finalResults
+                                                                  .length,
+                                                          itemBuilder:
+                                                              (BuildContext
+                                                                      context,
+                                                                  int index) {
+                                                            Map<String, dynamic>
+                                                                result =
+                                                                finalResults[
+                                                                    index];
+                                                            bool isCorrect =
+                                                                result[
+                                                                    'is_correct'];
+                                                            Color
+                                                                getItemColor() {
+                                                              return isCorrect
+                                                                  ? Colors.green
+                                                                  : Colors.red;
+                                                            }
 
-                                                      return Container(
-                                                        decoration:
-                                                            BoxDecoration(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(10),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                              color: Colors
-                                                                  .black
-                                                                  .withOpacity(
-                                                                      0.15),
-                                                              blurRadius: 5,
-                                                              offset:
-                                                                  Offset(0, 2),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: ElevatedButton(
-                                                          onPressed: () {},
-                                                          style: ButtonStyle(
-                                                            padding:
-                                                                MaterialStateProperty.all<
-                                                                        EdgeInsetsGeometry>(
-                                                                    EdgeInsets
-                                                                        .all(
-                                                                            8)),
-                                                            fixedSize: MaterialStateProperty
-                                                                .all<Size>(Size(
-                                                                    size.width *
-                                                                        0.27,
-                                                                    36)),
-                                                            backgroundColor:
-                                                                MaterialStateProperty
-                                                                    .all<Color>(
-                                                                        getItemColor()),
-                                                            shape: MaterialStateProperty
-                                                                .all<
-                                                                    RoundedRectangleBorder>(
-                                                              RoundedRectangleBorder(
+                                                            return Container(
+                                                              decoration:
+                                                                  BoxDecoration(
                                                                 borderRadius:
                                                                     BorderRadius
                                                                         .circular(
                                                                             10),
+                                                                boxShadow: [
+                                                                  BoxShadow(
+                                                                    color: Colors
+                                                                        .black
+                                                                        .withOpacity(
+                                                                            0.15),
+                                                                    blurRadius:
+                                                                        5,
+                                                                    offset:
+                                                                        Offset(
+                                                                            0,
+                                                                            2),
+                                                                  ),
+                                                                ],
                                                               ),
-                                                            ),
-                                                          ),
-                                                          child: Text(
-                                                              '${result['question_id']}',
-                                                              style: TextStyles
-                                                                  .loginButtonText),
-                                                        ),
-                                                      );
+                                                              child:
+                                                                  ElevatedButton(
+                                                                onPressed:
+                                                                    () {},
+                                                                style:
+                                                                    ButtonStyle(
+                                                                  padding: MaterialStateProperty.all<
+                                                                          EdgeInsetsGeometry>(
+                                                                      EdgeInsets
+                                                                          .all(
+                                                                              8)),
+                                                                  fixedSize: MaterialStateProperty.all<
+                                                                          Size>(
+                                                                      Size(
+                                                                          size.width *
+                                                                              0.27,
+                                                                          36)),
+                                                                  backgroundColor:
+                                                                      MaterialStateProperty.all<
+                                                                              Color>(
+                                                                          getItemColor()),
+                                                                  shape: MaterialStateProperty
+                                                                      .all<
+                                                                          RoundedRectangleBorder>(
+                                                                    RoundedRectangleBorder(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              10),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                child: Text(
+                                                                    '${index + 1}',
+                                                                    style: TextStyles
+                                                                        .loginButtonText),
+                                                              ),
+                                                            );
+                                                          },
+                                                        );
+                                                      }
                                                     },
-                                                  );
-                                                }
-                                              },
-                                            ),
-                                          ),
-                                          Expanded(child: Container()),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                            },
-                                            style: ButtonStyle(
-                                              padding: MaterialStateProperty
-                                                  .all<EdgeInsetsGeometry>(
-                                                      EdgeInsets.all(8)),
-                                              fixedSize: MaterialStateProperty
-                                                  .all<Size>(Size(
-                                                      size.width * 0.75, 55)),
-                                              backgroundColor:
-                                                  MaterialStateProperty
-                                                      .all<Color>(ColorPalette
-                                                          .primaryColor),
-                                              side: MaterialStateProperty
-                                                  .all<BorderSide>(BorderSide(
-                                                      color: Colors.white,
-                                                      width: 1)),
-                                              shape: MaterialStateProperty.all<
-                                                  RoundedRectangleBorder>(
-                                                RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(40),
+                                                  ),
                                                 ),
-                                              ),
+                                                Expanded(child: Container()),
+                                                ElevatedButton(
+                                                  onPressed: () async {
+                                                    try {
+                                                      String? userId =
+                                                          await fetchUserIdByEmail(
+                                                              email!);
+                                                      if (userId != null) {
+                                                        handleResults(userId,
+                                                            widget.unitsId);
+                                                        Navigator.pop(context);
+                                                      } else {
+                                                        print('User not found');
+                                                        // Xử lý trường hợp người dùng không tìm thấy
+                                                      }
+                                                    } catch (e) {
+                                                      print('Error: $e');
+                                                      // Xử lý lỗi nếu cần thiết
+                                                    }
+                                                    Navigator.pop(context);
+                                                  },
+                                                  style: ButtonStyle(
+                                                    padding: MaterialStateProperty
+                                                        .all<EdgeInsetsGeometry>(
+                                                            EdgeInsets.all(8)),
+                                                    fixedSize:
+                                                        MaterialStateProperty
+                                                            .all<Size>(Size(
+                                                                size.width *
+                                                                    0.75,
+                                                                55)),
+                                                    backgroundColor:
+                                                        MaterialStateProperty.all<
+                                                                Color>(
+                                                            ColorPalette
+                                                                .primaryColor),
+                                                    side: MaterialStateProperty
+                                                        .all<
+                                                                BorderSide>(
+                                                            BorderSide(
+                                                                color: Colors
+                                                                    .white,
+                                                                width: 1)),
+                                                    shape: MaterialStateProperty
+                                                        .all<
+                                                            RoundedRectangleBorder>(
+                                                      RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(40),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  child: Text('Finish',
+                                                      style: TextStyles
+                                                          .loginButtonText),
+                                                ),
+                                                const Gap(15),
+                                              ],
                                             ),
-                                            child: Text('Finish',
-                                                style:
-                                                    TextStyles.loginButtonText),
-                                          ),
-                                          const Gap(15),
-                                        ],
-                                      ),
+                                          );
+                                        }
+                                      },
                                     );
                                   }
                                 },
                               ),
                             ],
-                          ),
+                          )
                         ],
                       ),
                     ),

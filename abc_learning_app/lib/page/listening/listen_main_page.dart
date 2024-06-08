@@ -2,12 +2,10 @@ import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
-import 'package:abc_learning_app/page/exercise/exercise_sub_page.dart';
 import 'package:abc_learning_app/page/listening/in_a_topic_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
-import 'package:abc_learning_app/page/reading/read_sub_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
@@ -29,9 +27,29 @@ class _ListenMainPageState extends State<ListenMainPage> {
     );
   }
 
+  Future<void> initializeUserProgressIfNeeded(
+      String userId, String documentId) async {
+    final progressDocRef = FirebaseFirestore.instance
+        .collection('listening')
+        .doc(documentId)
+        .collection('progress')
+        .doc(userId);
+
+    final progressDocSnapshot = await progressDocRef.get();
+
+    if (!progressDocSnapshot.exists) {
+      await progressDocRef.set({
+        'user_id': userId,
+        'current_index': 0,
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+    final String? email = FirebaseAuth.instance.currentUser?.email;
+
     return Scaffold(
       body: Container(
         padding: const EdgeInsets.all(24),
@@ -219,7 +237,7 @@ class _ListenMainPageState extends State<ListenMainPage> {
                     itemCount: snapshot.data?.docs.length,
                     itemBuilder: (context, index) {
                       DocumentSnapshot document = snapshot.data!.docs[index];
-                      return buildListenItem(context, document);
+                      return buildListenItem(context, document, email);
                     },
                   );
                 },
@@ -232,71 +250,132 @@ class _ListenMainPageState extends State<ListenMainPage> {
     );
   }
 
-  Widget buildListenItem(BuildContext context, DocumentSnapshot document) {
+  Widget buildListenItem(
+      BuildContext context, DocumentSnapshot document, String? email) {
     Size size = MediaQuery.of(context).size;
     Map<String, dynamic> data = document.data() as Map<String, dynamic>;
-    return GestureDetector(
-        onTap: () {
-          _navigateToTopicPage(data['units_id']);
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(7),
-            border: Border.all(
-              color: ColorPalette.itemBorder,
-              width: 1,
-            ),
+
+    return FutureBuilder<String?>(
+      future: fetchUserIdByEmail(email),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircularProgressIndicator();
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return Text('User not found');
+        } else {
+          String userId = snapshot.data!;
+          initializeUserProgressIfNeeded(userId, document.id);
+          return StreamBuilder<DocumentSnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('listening')
+                .doc(document.id)
+                .collection('progress')
+                .doc(userId)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text('Error: ${snapshot.error}');
+              } else if (!snapshot.hasData || !snapshot.data!.exists) {
+                return GestureDetector(
+                  onTap: () {
+                    _navigateToTopicPage(data['units_id']);
+                  },
+                  child:
+                      buildListenCard(context, data, size, 0, data['maxIndex']),
+                );
+              } else {
+                var progressData =
+                    snapshot.data!.data() as Map<String, dynamic>;
+                int currentIndex = progressData['current_index'] ?? 0;
+                return GestureDetector(
+                  onTap: () {
+                    _navigateToTopicPage(data['units_id']);
+                  },
+                  child: buildListenCard(
+                      context, data, size, currentIndex, data['maxIndex']),
+                );
+              }
+            },
+          );
+        }
+      },
+    );
+  }
+
+  Future<String?> fetchUserIdByEmail(String? email) async {
+    final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isEqualTo: email)
+        .limit(1)
+        .get();
+
+    if (querySnapshot.docs.isNotEmpty) {
+      return querySnapshot.docs.first.id;
+    } else {
+      return null;
+    }
+  }
+
+  Widget buildListenCard(BuildContext context, Map<String, dynamic> data,
+      Size size, int currentIndex, int maxIndex) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(7),
+        border: Border.all(
+          color: ColorPalette.itemBorder,
+          width: 1,
+        ),
+      ),
+      padding: EdgeInsets.all(15),
+      margin: EdgeInsets.only(bottom: 20),
+      child: Row(
+        children: [
+          Image.network(
+            data['img_url'],
+            width: 60,
+            height: 60,
+            fit: BoxFit.cover,
           ),
-          padding: EdgeInsets.all(15),
-          margin: EdgeInsets.only(bottom: 20),
-          child: Row(
+          Gap(10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.network(
-                data[
-                    'img_url'], // assuming 'image' is the field name for the image URL
-                width: 60,
-                height: 60,
-                fit: BoxFit.cover,
+              Text(
+                data['title'],
+                style: TextStyles.itemTitle,
               ),
-              Gap(10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const Gap(12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    data[
-                        'title'], // assuming 'title' is the field name for the title
-                    style: TextStyles.itemTitle,
+                  Container(
+                    width: size.width - 185,
+                    height: 10,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: LinearProgressIndicator(
+                        value: currentIndex / maxIndex,
+                        backgroundColor: ColorPalette.progressbarbackground,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                            ColorPalette.progressbarValue),
+                      ),
+                    ),
                   ),
-                  const Gap(12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Container(
-                        width: size.width - 185,
-                        height: 10,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: LinearProgressIndicator(
-                            value: data['currentIndex'] /
-                                data[
-                                    'maxIndex'], // assuming 'progress' is the field name for progress
-                            backgroundColor: ColorPalette.progressbarbackground,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                                ColorPalette.progressbarValue),
-                          ),
-                        ),
-                      ),
-                      Gap(8),
-                      Text(
-                        '${data['currentIndex']}/${data['maxIndex']}', // assuming 'progress' is the field name for progress
-                        style: TextStyles.itemprogress,
-                      ),
-                    ],
+                  Gap(8),
+                  Text(
+                    '$currentIndex/$maxIndex',
+                    style: TextStyles.itemprogress,
                   ),
                 ],
               ),
             ],
           ),
-        ));
+        ],
+      ),
+    );
   }
 }
