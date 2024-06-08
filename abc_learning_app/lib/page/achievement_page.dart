@@ -2,6 +2,10 @@ import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
 import 'package:abc_learning_app/model/achievement_model.dart';
 import 'package:abc_learning_app/model/achievement_progress_model.dart';
+import 'package:abc_learning_app/model/exercise/exercise_progress.dart';
+import 'package:abc_learning_app/model/exercise/exercise_progress_repo.dart';
+import 'package:abc_learning_app/model/listening/listening_progress.dart';
+import 'package:abc_learning_app/model/listening/listening_progress_repo.dart';
 import 'package:abc_learning_app/model/reading_data_model.dart';
 import 'package:abc_learning_app/model/reading_progress_model.dart';
 import 'package:abc_learning_app/page/home_page.dart';
@@ -26,7 +30,8 @@ class _AchievementPageState extends State<AchievementPage> {
   static final AchievementRepo _achievementRepo = AchievementRepo();
   final ReadingTopicRepo _readingTopicRepo = ReadingTopicRepo();
   final ReadingProgressRepo _readingProgressRepo = ReadingProgressRepo();
-
+  final ExerciseProgressRepo _exerciseProgressRepo = ExerciseProgressRepo();
+  final ListeningProgressRepo _listeningProgressRepo = ListeningProgressRepo();
   int _totalAchievement = 0;
   int _completePercent = 0;
   int completedAchievements = 0;
@@ -53,12 +58,18 @@ class _AchievementPageState extends State<AchievementPage> {
               _readingTopicRepo.getAllTopic(),
               _readingProgressRepo.getReadingProgressById(
                   FirebaseAuth.instance.currentUser!.uid),
+              _exerciseProgressRepo.getExerciseProgressById(
+                  FirebaseAuth.instance.currentUser!.uid),
+              _listeningProgressRepo.getExerciseProgressById(
+                  FirebaseAuth.instance.currentUser!.uid)
             ]),
             builder: (BuildContext context, AsyncSnapshot snapshot) {
               if (snapshot.hasData) {
                 List<Achievement> achievements = snapshot.data[0];
                 List<ReadingTopic> readingTopics = snapshot.data[1];
                 ReadingProgress readingProgress = snapshot.data[2];
+                ExerciseProgress exerciseProgress = snapshot.data[3];
+                ListeningProgress listeningProgress = snapshot.data[4];
                 for (int i = 0; i < achievements.length; i++) {
                   Achievement currentAchievement = achievements[i];
                   int currentProgress = 0;
@@ -81,6 +92,38 @@ class _AchievementPageState extends State<AchievementPage> {
                       completedAchievements++;
                       print(completedAchievements);
                     }
+                  }
+                  //Doan nay la setting achievement cho exercise
+                  else if (currentAchievement.type == 'exercise-topic') {
+                    for (var unit in exerciseProgress.unitProgress.values) {
+                      if (unit['reachMax'] == true) {
+                        currentProgress++;
+                      }
+                    }
+                    currentProgress =
+                        exerciseProgress.simpleIndex > currentProgress
+                            ? exerciseProgress.simpleIndex
+                            : currentProgress;
+                  } else if (currentAchievement.type == 'exercise-index') {
+                    currentProgress = exerciseProgress.currentIndex;
+                  } else if (currentAchievement.type == 'listening-topic') {
+                    for (var unit in listeningProgress.unitProgress.values) {
+                      if (unit['reachMax'] == true) {
+                        currentProgress++;
+                      }
+                    }
+                    currentProgress =
+                        listeningProgress.simpleIndex > currentProgress
+                            ? listeningProgress.simpleIndex
+                            : currentProgress;
+                  } else if (currentAchievement.type == 'listening-index') {
+                    currentProgress = listeningProgress.currentIndex;
+                  }
+
+                  progressPerAchievement[currentAchievement.id] =
+                      currentProgress;
+                  if (currentProgress >= currentAchievement.maxIndex) {
+                    completedAchievements++;
                   }
                 }
                 _totalAchievement = achievements.length;
