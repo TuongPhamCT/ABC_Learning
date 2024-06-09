@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/listening/listen_main_page.dart';
 import 'package:async/async.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -1606,7 +1607,9 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                                       print('Error: $e');
                                                       // Xử lý lỗi nếu cần thiết
                                                     }
-                                                    Navigator.pop(context);
+                                                    Navigator.pop(
+                                                        const ListenMainPage()
+                                                            as BuildContext);
                                                   },
                                                   style: ButtonStyle(
                                                     padding: MaterialStateProperty
