@@ -929,10 +929,10 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                   ),
                                   Container(
                                     alignment: Alignment.center,
-                                    child: Image.asset(
-                                      AssetHelper.exerciseMain,
-                                      width: 100,
-                                      height: 100,
+                                    child: Image.network(
+                                      '${snapshot.data!.get('question_2')['img_url']}',
+                                      width: 300,
+                                      height: 150,
                                       fit: BoxFit.cover,
                                     ),
                                   ),
