@@ -3,7 +3,7 @@
 <h1>ABC LEARNING</h1>
 <!-- ABC LEARNING -->
 <a style="text-decoration: none;" href="#Top">
-    <img src="./abc_learning_app/assets/images/logo_nobg.png" alt="ABC Learning" width="250"/>
+    <img src="./assets/images/logo_nobg.png" alt="ABC Learning" width="250"/>
 </a>
 
 ## Danh mục
