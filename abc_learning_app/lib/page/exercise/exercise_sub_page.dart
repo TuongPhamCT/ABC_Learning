@@ -518,7 +518,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                             physics: const NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             scrollDirection: Axis.horizontal,
-                            itemCount: 6,
+                            itemCount: 3,
                             itemBuilder: (context, index) {
                               return Container(
                                 height: 8,

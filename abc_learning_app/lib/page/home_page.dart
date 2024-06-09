@@ -121,11 +121,17 @@ class _HomePageState extends State<HomePage> {
           int currentIndex = progressSnapshot['current_index'];
           totalCurrentIndex += currentIndex;
         }
+        print(
+            'maxIndex: $maxIndex, currentIndex: ${progressSnapshot.exists ? progressSnapshot['current_index'] : 0}');
       }
-
+      // Log tổng số chỉ số
+      print(
+          'totalMaxIndex: $totalMaxIndex, totalCurrentIndex: $totalCurrentIndex');
       if (totalMaxIndex > 0) {
         setState(() {
           overallExerciseProgress = totalCurrentIndex / totalMaxIndex;
+          print(
+              'overallExerciseProgress: $overallExerciseProgress'); // Log để kiểm tra giá trị
         });
       }
     }

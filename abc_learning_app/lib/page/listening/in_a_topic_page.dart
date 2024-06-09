@@ -334,7 +334,7 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             scrollDirection: Axis.horizontal,
-                            itemCount: 6,
+                            itemCount: 3,
                             itemBuilder: (context, index) {
                               return Container(
                                 height: 8,
