@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
@@ -26,12 +28,45 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
   late Future<DocumentSnapshot> _unitDocument;
   late Future<List<QueryDocumentSnapshot>> _listeningDocument;
   late String? email;
+  List<Map<String, String>> shuffledAnswers = [];
   @override
   void initState() {
     super.initState();
     _unitDocument = _fetchUnitDocument(widget.unitsId);
     _listeningDocument = fetchListeningDocuments(widget.unitsId);
     email = FirebaseAuth.instance.currentUser?.email;
+    fetchAndShuffleAnswers(widget.unitsId);
+  }
+
+  Future<void> fetchAndShuffleAnswers(String unitsId) async {
+    final DocumentSnapshot documentSnapshot =
+        await FirebaseFirestore.instance.collection('units').doc(unitsId).get();
+    if (documentSnapshot.exists) {
+      var documentData = documentSnapshot.data() as Map<String, dynamic>;
+      shuffledAnswers = shuffleAnswers(documentData);
+      setState(() {});
+    }
+  }
+
+  List<Map<String, String>> shuffleAnswers(Map<String, dynamic> data) {
+    List<Map<String, String>> answers = [
+      {'label': 'right', 'img_url': data['question_2']['right']['img_url']},
+      {
+        'label': 'wrong 0',
+        'img_url': data['question_2']['wrong']['img_url'][0]
+      },
+      {
+        'label': 'wrong 1',
+        'img_url': data['question_2']['wrong']['img_url'][1]
+      },
+      {
+        'label': 'wrong 2',
+        'img_url': data['question_2']['wrong']['img_url'][2]
+      },
+    ];
+
+    answers.shuffle(Random());
+    return answers;
   }
 
   Future<DocumentSnapshot> _fetchUnitDocument(String unitsId) async {
@@ -292,7 +327,6 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
             } else if (snapshot.data == null || !snapshot.data!.exists) {
               return Text('Document does not exist');
             } else {
-              var unitData = snapshot.data!.data() as Map<String, dynamic>;
               return Container(
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -627,15 +661,11 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         createAnswerButton(
-                                            'right',
-                                            snapshot.data!
-                                                    .get('question_2')['right']
-                                                ['img_url']),
+                                            shuffledAnswers[0]['label']!,
+                                            shuffledAnswers[0]['img_url']!),
                                         createAnswerButton(
-                                            'wrong 0',
-                                            snapshot.data!
-                                                    .get('question_2')['wrong']
-                                                ['img_url'][0]),
+                                            shuffledAnswers[1]['label']!,
+                                            shuffledAnswers[1]['img_url']!),
                                       ],
                                     ),
                                     const Gap(20),
@@ -644,15 +674,11 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         createAnswerButton(
-                                            'wrong 1',
-                                            snapshot.data!
-                                                    .get('question_2')['wrong']
-                                                ['img_url'][1]),
+                                            shuffledAnswers[2]['label']!,
+                                            shuffledAnswers[2]['img_url']!),
                                         createAnswerButton(
-                                            'wrong 2',
-                                            snapshot.data!
-                                                    .get('question_2')['wrong']
-                                                ['img_url'][2]),
+                                            shuffledAnswers[3]['label']!,
+                                            shuffledAnswers[3]['img_url']!),
                                       ],
                                     ),
                                     Expanded(child: Container()),
@@ -818,6 +844,7 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                               else
                                 ElevatedButton(
                                   onPressed: () async {
+                                    await player.stop();
                                     setState(() {
                                       checkAnswer = true;
                                     });
@@ -1180,6 +1207,7 @@ class _ListenTopicPageState extends State<ListenTopicPage> {
                               else
                                 ElevatedButton(
                                   onPressed: () async {
+                                    await player.stop();
                                     setState(() {
                                       checkAnswer = true;
                                     });
