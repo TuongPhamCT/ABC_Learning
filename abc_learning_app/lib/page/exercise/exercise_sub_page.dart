@@ -666,8 +666,8 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                               Expanded(child: Container()),
                               Container(
                                 alignment: Alignment.center,
-                                child: Image.asset(
-                                  AssetHelper.storyilu,
+                                child: Image.network(
+                                  '${snapshot.data!.get('question_1')['img_url']}',
                                   width: 130,
                                   height: 115,
                                 ),
@@ -1390,7 +1390,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                       .withOpacity(0.15)),
                                           fixedSize: MaterialStateProperty.all<
                                                   Size>(
-                                              Size(size.width / 3 - 40, 36)),
+                                              Size(size.width / 3 - 20, 36)),
                                           backgroundColor:
                                               MaterialStateProperty.all<Color>(
                                                   ColorPalette.primaryColor),
@@ -1435,7 +1435,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                       .withOpacity(0.15)),
                                           fixedSize: MaterialStateProperty.all<
                                                   Size>(
-                                              Size(size.width / 3 - 40, 36)),
+                                              Size(size.width / 3 - 20, 36)),
                                           backgroundColor:
                                               MaterialStateProperty.all<Color>(
                                                   ColorPalette.primaryColor),
@@ -1485,7 +1485,7 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                       .withOpacity(0.15)),
                                           fixedSize: MaterialStateProperty.all<
                                                   Size>(
-                                              Size(size.width / 3 - 40, 36)),
+                                              Size(size.width / 3 - 20, 36)),
                                           backgroundColor:
                                               MaterialStateProperty.all<Color>(
                                                   ColorPalette.primaryColor),
