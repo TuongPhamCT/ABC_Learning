@@ -3,7 +3,9 @@ import 'dart:math';
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
+import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
 import 'package:abc_learning_app/page/exercise/fill_the_blank.dart';
+import 'package:abc_learning_app/page/home_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -2029,7 +2031,9 @@ class _ExerciseSubPageState extends State<ExerciseSubPage> {
                                                       print('Error: $e');
                                                       // Xử lý lỗi nếu cần thiết
                                                     }
-                                                    Navigator.pop(context);
+                                                    Navigator.pop(
+                                                        const ExerciseMainPage()
+                                                            as BuildContext);
                                                   },
                                                   style: ButtonStyle(
                                                     padding: MaterialStateProperty

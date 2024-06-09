@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:abc_learning_app/constant/asset_helper.dart';
 import 'package:abc_learning_app/constant/color_palette.dart';
 import 'package:abc_learning_app/constant/text_style.dart';
@@ -7,17 +8,13 @@ import 'package:abc_learning_app/model/user_model.dart';
 import 'package:abc_learning_app/page/achievement_page.dart';
 import 'package:abc_learning_app/page/exercise/exercise_main_page.dart';
 import 'package:abc_learning_app/page/listening/listen_main_page.dart';
-import 'package:abc_learning_app/page/login_page.dart';
 import 'package:abc_learning_app/page/profile/profile_main_page.dart';
 import 'package:abc_learning_app/page/reading/read_main_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:gap/gap.dart';
-import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -34,105 +31,74 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   double overallListeningProgress = 0.0;
   double overallExerciseProgress = 0.0;
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   // Xóa lịch sử đường dẫn khi vào màn hình chính
-  //   WidgetsBinding.instance.addPostFrameCallback((_) {
-  //     final navigator = Navigator.of(context);
-  //     if (navigator != null) {
-  //       navigator.popUntil((route) => route.isFirst);
-  //     }
-  //   });
-  // } // Gây lỗi khi chuyển trang bằng BottomNavigationBar
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    fetchOverallListeningProgress();
-    fetchOverallExerciseProgress();
   }
 
-  Future<void> fetchOverallListeningProgress() async {
+  Stream<double> fetchOverallListeningProgress() async* {
     String? email = FirebaseAuth.instance.currentUser?.email;
     String? userId = await fetchUserIdByEmail(email);
     if (userId != null) {
-      QuerySnapshot exercisesSnapshot =
-          await FirebaseFirestore.instance.collection('listening').get();
+      await for (var exercisesSnapshot
+          in FirebaseFirestore.instance.collection('listening').snapshots()) {
+        int totalMaxIndex = 0;
+        int totalCurrentIndex = 0;
 
-      int totalMaxIndex = 0;
-      int totalCurrentIndex = 0;
+        for (var doc in exercisesSnapshot.docs) {
+          int maxIndex = doc['maxIndex'];
+          totalMaxIndex += maxIndex;
 
-      for (var doc in exercisesSnapshot.docs) {
-        int maxIndex = doc['maxIndex'];
-        totalMaxIndex += maxIndex;
+          DocumentSnapshot progressSnapshot = await FirebaseFirestore.instance
+              .collection('listening')
+              .doc(doc.id)
+              .collection('progress')
+              .doc(userId)
+              .get();
 
-        DocumentSnapshot progressSnapshot = await FirebaseFirestore.instance
-            .collection('listening')
-            .doc(doc.id)
-            .collection('progress')
-            .doc(userId)
-            .get();
-
-        if (progressSnapshot.exists) {
-          int currentIndex = progressSnapshot['current_index'];
-          totalCurrentIndex += currentIndex;
+          if (progressSnapshot.exists) {
+            int currentIndex = progressSnapshot['current_index'];
+            totalCurrentIndex += currentIndex;
+          }
         }
-        // Log để kiểm tra dữ liệu
-        print(
-            'maxIndex: $maxIndex, currentIndex: ${progressSnapshot.exists ? progressSnapshot['current_index'] : 0}');
-      }
-      // Log tổng số chỉ số
-      print(
-          'totalMaxIndex: $totalMaxIndex, totalCurrentIndex: $totalCurrentIndex');
 
-      if (totalMaxIndex > 0) {
-        setState(() {
-          overallListeningProgress = totalCurrentIndex / totalMaxIndex;
-          print(
-              'overallListeningProgress: $overallListeningProgress'); // Log để kiểm tra giá trị
-        });
+        if (totalMaxIndex > 0) {
+          yield totalCurrentIndex / totalMaxIndex;
+        }
       }
     }
   }
 
-  Future<void> fetchOverallExerciseProgress() async {
+  Stream<double> fetchOverallExerciseProgress() async* {
     String? email = FirebaseAuth.instance.currentUser?.email;
     String? userId = await fetchUserIdByEmail(email);
     if (userId != null) {
-      QuerySnapshot exercisesSnapshot =
-          await FirebaseFirestore.instance.collection('exercises').get();
+      await for (var exercisesSnapshot
+          in FirebaseFirestore.instance.collection('exercises').snapshots()) {
+        int totalMaxIndex = 0;
+        int totalCurrentIndex = 0;
 
-      int totalMaxIndex = 0;
-      int totalCurrentIndex = 0;
+        for (var doc in exercisesSnapshot.docs) {
+          int maxIndex = doc['maxIndex'];
+          totalMaxIndex += maxIndex;
 
-      for (var doc in exercisesSnapshot.docs) {
-        int maxIndex = doc['maxIndex'];
-        totalMaxIndex += maxIndex;
+          DocumentSnapshot progressSnapshot = await FirebaseFirestore.instance
+              .collection('exercises')
+              .doc(doc.id)
+              .collection('progress')
+              .doc(userId)
+              .get();
 
-        DocumentSnapshot progressSnapshot = await FirebaseFirestore.instance
-            .collection('exercises')
-            .doc(doc.id)
-            .collection('progress')
-            .doc(userId)
-            .get();
-
-        if (progressSnapshot.exists) {
-          int currentIndex = progressSnapshot['current_index'];
-          totalCurrentIndex += currentIndex;
+          if (progressSnapshot.exists) {
+            int currentIndex = progressSnapshot['current_index'];
+            totalCurrentIndex += currentIndex;
+          }
         }
-        print(
-            'maxIndex: $maxIndex, currentIndex: ${progressSnapshot.exists ? progressSnapshot['current_index'] : 0}');
-      }
-      // Log tổng số chỉ số
-      print(
-          'totalMaxIndex: $totalMaxIndex, totalCurrentIndex: $totalCurrentIndex');
-      if (totalMaxIndex > 0) {
-        setState(() {
-          overallExerciseProgress = totalCurrentIndex / totalMaxIndex;
-          print(
-              'overallExerciseProgress: $overallExerciseProgress'); // Log để kiểm tra giá trị
-        });
+
+        if (totalMaxIndex > 0) {
+          yield totalCurrentIndex / totalMaxIndex;
+        }
       }
     }
   }
@@ -250,70 +216,79 @@ class _HomePageState extends State<HomePage> {
                                   Navigator.of(context)
                                       .pushNamed(ListenMainPage.routeName);
                                 },
-                                child: Container(
-                                  padding: EdgeInsets.all(15),
-                                  margin: EdgeInsets.only(bottom: 15),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: ColorPalette.componentBorder,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Image.asset(
-                                        AssetHelper.iconlisten,
-                                        width: 60,
-                                      ),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Listening',
-                                            style: TextStyles.titleComponent,
+                                child: StreamBuilder<double>(
+                                    stream: fetchOverallListeningProgress(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        overallListeningProgress = snapshot.data!;
+                                      }
+                                      return Container(
+                                        padding: EdgeInsets.all(15),
+                                        margin: EdgeInsets.only(bottom: 15),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: ColorPalette.componentBorder,
                                           ),
-                                          Gap(5),
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: [
-                                              Container(
-                                                width: size.width - 150,
-                                                height: 12,
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  child:
-                                                      LinearProgressIndicator(
-                                                    value:
-                                                        overallListeningProgress,
-                                                    backgroundColor: ColorPalette
-                                                        .progressbarbackground,
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                                Color>(
-                                                            ColorPalette
-                                                                .progressbarValue),
-                                                  ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Image.asset(
+                                              AssetHelper.iconlisten,
+                                              width: 60,
+                                            ),
+                                            Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Listening',
+                                                  style: TextStyles.titleComponent,
                                                 ),
-                                              ),
-                                              Gap(8),
-                                              Text(
-                                                '${(overallListeningProgress * 100).toStringAsFixed(0)}%',
-                                                style: TextStyles.progress,
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                                Gap(5),
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.end,
+                                                  children: [
+                                                    Container(
+                                                      width: size.width - 150,
+                                                      height: 12,
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                15),
+                                                        child:
+                                                            LinearProgressIndicator(
+                                                          value:
+                                                              overallListeningProgress,
+                                                          backgroundColor:
+                                                              ColorPalette
+                                                                  .progressbarbackground,
+                                                          valueColor:
+                                                              AlwaysStoppedAnimation<
+                                                                      Color>(
+                                                                  ColorPalette
+                                                                      .progressbarValue),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Gap(8),
+                                                    Text(
+                                                      '${(overallListeningProgress * 100).toStringAsFixed(0)}%',
+                                                      style: TextStyles.progress,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
                               ),
                               GestureDetector(
                                 onTap: () {
@@ -390,70 +365,79 @@ class _HomePageState extends State<HomePage> {
                                   Navigator.of(context)
                                       .pushNamed(ExerciseMainPage.routeName);
                                 },
-                                child: Container(
-                                  padding: EdgeInsets.all(15),
-                                  margin: EdgeInsets.only(bottom: 15),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: ColorPalette.componentBorder,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Image.asset(
-                                        AssetHelper.iconexecise,
-                                        width: 60,
-                                      ),
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            'Exercise',
-                                            style: TextStyles.titleComponent,
+                                child: StreamBuilder<double>(
+                                    stream: fetchOverallExerciseProgress(),
+                                    builder: (context, snapshot) {
+                                      if (snapshot.hasData) {
+                                        overallExerciseProgress = snapshot.data!;
+                                      }
+                                      return Container(
+                                        padding: EdgeInsets.all(15),
+                                        margin: EdgeInsets.only(bottom: 15),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: ColorPalette.componentBorder,
                                           ),
-                                          Gap(5),
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.end,
-                                            children: [
-                                              Container(
-                                                width: size.width - 150,
-                                                height: 12,
-                                                child: ClipRRect(
-                                                  borderRadius:
-                                                      BorderRadius.circular(15),
-                                                  child:
-                                                      LinearProgressIndicator(
-                                                    value:
-                                                        overallExerciseProgress,
-                                                    backgroundColor: ColorPalette
-                                                        .progressbarbackground,
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                                Color>(
-                                                            ColorPalette
-                                                                .progressbarValue),
-                                                  ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Image.asset(
+                                              AssetHelper.iconexecise,
+                                              width: 60,
+                                            ),
+                                            Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceBetween,
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Exercise',
+                                                  style: TextStyles.titleComponent,
                                                 ),
-                                              ),
-                                              Gap(8),
-                                              Text(
-                                                '${(overallExerciseProgress * 100).toStringAsFixed(0)}%',
-                                                style: TextStyles.progress,
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                                Gap(5),
+                                                Row(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.end,
+                                                  children: [
+                                                    Container(
+                                                      width: size.width - 150,
+                                                      height: 12,
+                                                      child: ClipRRect(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                15),
+                                                        child:
+                                                            LinearProgressIndicator(
+                                                          value:
+                                                              overallExerciseProgress,
+                                                          backgroundColor:
+                                                              ColorPalette
+                                                                  .progressbarbackground,
+                                                          valueColor:
+                                                              AlwaysStoppedAnimation<
+                                                                      Color>(
+                                                                  ColorPalette
+                                                                      .progressbarValue),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Gap(8),
+                                                    Text(
+                                                      '${(overallExerciseProgress * 100).toStringAsFixed(0)}%',
+                                                      style: TextStyles.progress,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }),
                               ),
                             ],
                           ),
